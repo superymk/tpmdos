@@ -232,7 +232,7 @@ int main()
 }
 
 //TestCases
-#define TEST_STR    "This is some daa5."
+#define TEST_STR    "This is some test."
 #define TEST_STR_LENGTH  (strlen(TEST_STR))
 int TestNVWrite(TSS_HCONTEXT hContext)
 {
@@ -245,7 +245,7 @@ int TestNVRead(TSS_HCONTEXT hContext)
     char dataToRead[4096]={0};
     UINT32 status = 0;
     
-    //memset(dataToRead, 0, TEST_STR_LENGTH);
+    memset(dataToRead, 0, TEST_STR_LENGTH);
     
     status = ReadNVRAM(hContext, 40, 0x00011101, TEST_STR_LENGTH, (BYTE*)dataToRead);
     printf("(Line %d, %s) dataToRead: %s\n", __LINE__ , __func__, dataToRead);
