@@ -1,7 +1,7 @@
+OUT = test
+
 all:
-	gcc tpm.c test.c -ltspi -Wall -g
-#all:
-	#gcc main.cpp hello.cpp factorial.cpp -o hello
+	gcc tpm.c cpu.c test.c -D_GNU_SOURCE -ltspi -Wall -g -o $(OUT)
     
 clean:
-	rm -f *.o
+	rm -f $(OUT)
