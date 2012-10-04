@@ -9,7 +9,10 @@
 #include "cpu.h"
 
 
+// Main entry of test cases.
+static int RunTestCases(void);
 
+// List all the test cases.
 static int TestNVWrite(TSS_HCONTEXT hContext);
 static int TestNVRead(TSS_HCONTEXT hContext);
 
@@ -32,29 +35,10 @@ int main(int argc, char** argv)
     
     // Init
     InitTPM(&hContext, &hTPM, &hSRK, &hSRKPolicy);
+    ReadMeta();
     
     // Run Test Cases.
-    ret = TestNVWrite(hContext);
-    if (ret == -1)
-    {
-        printf("(Line %d, %s) NVWrite Test Error Return.\n", __LINE__ , __func__ );
-        return -1;
-    }
-    else
-    { 
-        printf("(Line %d, %s) NVWrite Test Succeed.\n", __LINE__ , __func__ );
-    }
-    
-    ret = TestNVRead(hContext);
-    if (ret)
-    {
-        printf("(Line %d, %s) NVRead Test Error Return.\n", __LINE__ , __func__ );
-        return -1;
-    }
-    else
-    { 
-        printf("(Line %d, %s) NVRead Test Succeed.\n", __LINE__ , __func__ );
-    }
+    RunTestCases();
 
     // Finalize
     FinalizeTPM(&hContext, &hTPM, &hSRK, &hSRKPolicy);
@@ -95,5 +79,43 @@ int TestNVRead(TSS_HCONTEXT hContext)
     }
     
     return 0;
+    
+}
+
+// Main entry of test cases.
+int RunTestCases()
+{
+    UINT32 ret = 0;
+    
+    // Test 1.
+    while(1)
+    {
+        PRINT("aaa\n");
+        IncGlobalMeta(L_TEST);
+        
+        // Other Tests.
+        //~ ret = TestNVWrite(hContext);
+        //~ if (ret == -1)
+        //~ {
+            //~ printf("(Line %d, %s) NVWrite Test Error Return.\n", __LINE__ , __func__ );
+            //~ return -1;
+        //~ }
+        //~ else
+        //~ { 
+            //~ printf("(Line %d, %s) NVWrite Test Succeed.\n", __LINE__ , __func__ );
+        //~ }
+        
+        //~ ret = TestNVRead(hContext);
+        //~ if (ret)
+        //~ {
+            //~ printf("(Line %d, %s) NVRead Test Error Return.\n", __LINE__ , __func__ );
+            //~ return -1;
+        //~ }
+        //~ else
+        //~ { 
+            //~ printf("(Line %d, %s) NVRead Test Succeed.\n", __LINE__ , __func__ );
+        //~ }
+    }
+    
     
 }

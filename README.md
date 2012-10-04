@@ -22,5 +22,7 @@ Our project will evaluate the persistence of NVRAMs from popular commercial TPMs
 
 How to run
 =====================
-1. Install Curl
+1. Install git
 2. make [debug] [all]
+3. The results are available at (git clone https://tpmdos@code.google.com/p/tpm-data/ )
+4. You should use different hostname. because we use it to identify different results from different machines.
