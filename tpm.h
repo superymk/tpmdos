@@ -11,11 +11,13 @@
 #include <tss/tspi.h>
 #include <trousers/trousers.h>
 
+#ifdef DEBUG
+#define DBG(message,tResult) {printf("[tpm.c] (Line %d, %s) %s returned 0x%08x. %s.\n", __LINE__ , __func__ , message , tResult , Trspi_Error_String(tResult));}
+#else
+#define DBG(message,tResult) {}
+#endif
 
-#define DEBUG 1
-#define DBG(message,tResult) if(DEBUG) {printf("[tpm.c] (Line %d, %s) %s returned 0x%08x. %s.\n", __LINE__ , __func__ , message , tResult , Trspi_Error_String(tResult));}
-
-#define OWNER_PASSWD  "a"
+#define OWNER_PASSWD  "cylab"
 #define OWNER_PASSWD_LENGTH  (strlen(OWNER_PASSWD))
 
 extern void InitTPM(

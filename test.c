@@ -2,22 +2,18 @@
 #include <stdio.h>
 #include <string.h>
 #include <sched.h>
-//~ #include <tss/tss_error.h>
-//~ #include <tss/platform.h>
-#include <tss/tss_defines.h>
-#include <tss/tss_typedef.h>
-#include <tss/tss_structs.h>
 #include <tss/tspi.h>
-#include <trousers/trousers.h>
 
 #include "log.h"
 #include "tpm.h"
 #include "cpu.h"
 
+
+
 static int TestNVWrite(TSS_HCONTEXT hContext);
 static int TestNVRead(TSS_HCONTEXT hContext);
 
-int main()
+int main(int argc, char** argv)
 {
     TSS_HCONTEXT    hContext = 0;
     TSS_HTPM        hTPM = 0;
@@ -25,7 +21,7 @@ int main()
     TSS_HPOLICY     hSRKPolicy = 0;
     
     UINT32          ret = 0;
-
+    
     // Set CPU Affinity
     ret = SetAffinityCpu0();
     if (ret)

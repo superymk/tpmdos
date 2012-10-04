@@ -19,3 +19,8 @@ Our project will evaluate the persistence of NVRAMs from popular commercial TPMs
 [8] The Intel Safer Computing Initiative, Chap. 8
 [9] Luis F. G. Sarmenta, Marten van Dijk, Charles W. O¡¯Donnell, Jonathan Rhodes, and Srinivas Devadas, Virtual Monotonic Counters and Count-Limited Objects using a TPM without a Trusted OS, 2006
 [10] Marten Van Dijk, Luis F. G. Sarmenta , Jonathan Rhodes , Srinivas Devadas. Securing Shared Untrusted Storage by using TPM 1.2 Without Requiring a Trusted OS, 2007
+
+How to run
+=====================
+1. Install Curl
+2. make [debug] [all]

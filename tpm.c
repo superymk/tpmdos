@@ -1,5 +1,7 @@
 #include "tpm.h"
 
+#include <assert.h>
+
 int WriteNVRAM(
     TSS_HCONTEXT hContext, 
     UINT32 space_size, 
@@ -129,11 +131,17 @@ void InitTPM(
     TSS_RESULT        ret;
     BYTE              wks[20]; // Place to put the well known secret
 
+    // Sanity Checks
+    assert(hContext != NULL);
+    assert(hTPM != NULL);
+    assert(hSRK != NULL);
+    assert(hSRKPolicy != NULL);
+    
     memset(wks,0,20);// Set wks to the well known secret of 20 bytes of all zeros
     
     // Pick the TPM you are talking to in this case the system TPM (which you connect to with ¡°NULL¡±)
-    ret =Tspi_Context_Create(hContext); 
-    DBG(" Create a Context\n",ret); 
+    ret = Tspi_Context_Create(hContext); 
+    DBG("Create a Context\n",ret); 
     ret = Tspi_Context_Connect(*hContext, NULL); 
     DBG("Connect to TPM\n", ret);
         
@@ -162,6 +170,12 @@ void FinalizeTPM(
     TSS_HPOLICY* hSRKPolicy
 )
 {
+    // Sanity Checks
+    assert(hContext != NULL);
+    assert(hTPM != NULL);
+    assert(hSRK != NULL);
+    assert(hSRKPolicy != NULL);
+    
     /* Clean up */
     Tspi_Context_Close (*hTPM);
     Tspi_Context_Close (*hSRK);
