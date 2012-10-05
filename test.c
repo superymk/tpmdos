@@ -7,14 +7,13 @@
 #include "log.h"
 #include "tpm.h"
 #include "cpu.h"
-
-
+ 
 // Main entry of test cases.
-static void RunTestCases(TSS_HCONTEXT* hContext);
+static void RunPerfCases(TSS_HCONTEXT* hContext);
 
 // List all the test cases.
-static void TestNVWrite(TSS_HCONTEXT* hContext);
-static void TestNVRead(TSS_HCONTEXT* hContext);
+static void PerfNVWrite(TSS_HCONTEXT* hContext);
+static void PerfNVRead(TSS_HCONTEXT* hContext);
 
 int main(int argc, char** argv)
 {
@@ -37,8 +36,8 @@ int main(int argc, char** argv)
     InitTPM(&hContext, &hTPM, &hSRK, &hSRKPolicy);
     ReadMeta();
     
-    // Run Test Cases.
-    RunTestCases(&hContext);
+    // Run Perf Cases.
+    RunPerfCases(&hContext);
 
     // Finalize
     FinalizeTPM(&hContext, &hTPM, &hSRK, &hSRKPolicy);
@@ -49,10 +48,36 @@ int main(int argc, char** argv)
 }
 
 
-//TestCases
+//PerfCases
 #define TEST_STR    "This is some test."
 #define TEST_STR_LENGTH  (strlen(TEST_STR))
-void TestNVWrite(TSS_HCONTEXT* hContext)
+
+/*
+ * NAME
+ *	PerfNVWrite
+ *
+ * DESCRIPTION
+ *	This experiment measures the NVRAM Write performance by 
+ * writing a small amount of bytes.
+ *
+ * ALGORITHM
+ *	Setup:
+ *		Tspi_Context_Create
+ *		Tspi_Context_Connect
+ *		Tspi_Context_CreateObject(NV object)
+ *		Setsecret to TPM policy with the correct owner passwd
+ *		Tspi_SetAttribUint32(Index, permission, datasize)
+ *		(The Index is 0x00011101)
+ *		(The Permission is OWNERWRITE)
+ *		(The datasize is 40)
+ *		Tspi_NV_ReleaseSpace
+ *
+ * Run:	
+ *		Evaluation fails on Attibute setting failures and 
+ *      NVRAM write failure.
+ *
+ */
+void PerfNVWrite(TSS_HCONTEXT* hContext)
 {
     char dataToStore[4096] = TEST_STR;
     UINT32 ret = 0;
@@ -69,10 +94,35 @@ void TestNVWrite(TSS_HCONTEXT* hContext)
         return;
     }
     
-    PRINT("(%s SUCCESSFUL) NVWrite Test Succeed! \n", __func__);
+    PRINT("(%s SUCCESSFUL) NVWrite Perf Succeed! \n", __func__);
 }
 
-void TestNVRead(TSS_HCONTEXT* hContext)
+/*
+ * NAME
+ *	PerfNVRead
+ *
+ * DESCRIPTION
+ *	This experiment measures the NVRAM Write performance by 
+ * reading a small amount of bytes.
+ *
+ * ALGORITHM
+ *	Setup:
+ *		Tspi_Context_Create
+ *		Tspi_Context_Connect
+ *		Tspi_Context_CreateObject(NV object)
+ *		Setsecret to TPM policy with the correct owner passwd
+ *		Tspi_SetAttribUint32(Index, permission, datasize)
+ *		(The Index is 0x00011101)
+ *		(The Permission is OWNERWRITE)
+ *		(The datasize is 40)
+ *		Tspi_NV_ReleaseSpace
+ *
+ * Run:	
+ *		Evaluation fails on Attibute setting failures, NVRAM
+ *      read failure and string comparison failure.
+ *
+ */
+void PerfNVRead(TSS_HCONTEXT* hContext)
 {
     char dataToRead[4096]={0};
     UINT32 ret = 0;
@@ -100,11 +150,11 @@ void TestNVRead(TSS_HCONTEXT* hContext)
         return;
     }
     
-    PRINT("(%s SUCCESSFUL) NVRead Test Succeed! \n", __func__);
+    PRINT("(%s SUCCESSFUL) NVRead Perf Succeed! \n", __func__);
 }
 
-// Main entry of test cases.
-void RunTestCases(TSS_HCONTEXT* hContext)
+// Main entry of perf cases.
+void RunPerfCases(TSS_HCONTEXT* hContext)
 {
     while(1)
     {
@@ -112,7 +162,7 @@ void RunTestCases(TSS_HCONTEXT* hContext)
         //extern void Log_SubmitResult(TPMDOS_LAST_RUN* result);
         //void GNUPLOT_SubmitResult(TPMDOS_LAST_RUN* result);
         
-        TestNVWrite(hContext);
-        TestNVRead(hContext);
+        PerfNVWrite(hContext);
+        PerfNVRead(hContext);
     }
 }

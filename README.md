@@ -1,5 +1,5 @@
 tpmdos
-======
+=====================
 
 TPM is a hardware approach which provides authentication to upper-layer system components [2]. Nowadays, about 300 million TPM chips have been deployed to worldwide computers [3]. Inspired by its functionality and broad availability, various security mechanisms have been proposed by using TPM as their Trusted Computing Base (TCB) [1, 4, 5, 9, 10]. Furthermore, many existing implementations store certain private information inside its NVRAM [1, 4]. When being initialized or responding to authentication/secrecy service requests, there will be certain I/O operations to the built-in NVRAM [1, 4, 10].
 
@@ -20,12 +20,16 @@ Our project will evaluate the persistence of NVRAMs from popular commercial TPMs
 [9] Luis F. G. Sarmenta, Marten van Dijk, Charles W. O¡¯Donnell, Jonathan Rhodes, and Srinivas Devadas, Virtual Monotonic Counters and Count-Limited Objects using a TPM without a Trusted OS, 2006
 [10] Marten Van Dijk, Luis F. G. Sarmenta , Jonathan Rhodes , Srinivas Devadas. Securing Shared Untrusted Storage by using TPM 1.2 Without Requiring a Trusted OS, 2007
 
+Important
+=====================
+1. Disable ACPI
+2. You should use different hostname. because we use it to identify different results from different machines.
+
 How to run
 =====================
 1. Install git
 2. make [debug] [all]
 3. make install
 4. sh run.sh
-
 5. The results are available at (git clone https://tpmdos@code.google.com/p/tpm-data/ )
-6. You should use different hostname. because we use it to identify different results from different machines.
+
