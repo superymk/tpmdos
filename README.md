@@ -22,8 +22,9 @@ Our project will evaluate the persistence of NVRAMs from popular commercial TPMs
 
 Important
 =====================
-1. Disable ACPI
+1. Disable ACPI if you are using notebook.
 2. You should use different hostname. because we use it to identify different results from different machines.
+3. You need to take the ownership of TPM, set the owner key to be "cylab" (no quote), and set the SRK key to be "cmu" (no quote)
 
 How to run
 =====================
