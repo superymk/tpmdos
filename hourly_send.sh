@@ -11,12 +11,13 @@ exec 1>$f/submit_log 2>$f/submit_log
 cd $f
 git add $f/test
 git add $f/metadata-`hostname`
+git add $f/log-`hostname`
 cd ..
 
 while :
 do
     cd $f
-    msg="Experiment Result on: "`date -u` 
+    msg="Experiment Result on: "`date` 
     echo $msg
     git commit -a -m "$msg"
     git push --repo https://tpmdos:gR3KV4pE2Sd9@code.google.com/p/tpm-data/ 

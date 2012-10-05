@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <errno.h>
 
 #define MAX_HOSTNAME_LEN    256
 
@@ -15,21 +17,23 @@ void AppendFile(char* filepath, char* str, int len)
     int fd, ret;
 
     /* Open the file.  Clobber it if it exists. */
-    fd = open (filepath, O_WRONLY | O_CREAT | O_APPEND, S_IRWXU | S_IRWXG | S_IRWXO);
+    fd = open(filepath, O_WRONLY | O_CREAT | O_APPEND, S_IRWXU | S_IRWXG | S_IRWXO);
     
     if(fd == -1)
     {
-        PRINT("Error in openning file\n");
+        printf("Error in openning file\n");
         exit(1);
     }
     
-    /* Seek the beginning of the file */
-    //lseek (fd, 0, SEEK_END);
-    
     ret = write(fd, str, len);
-    PRINT("%d",ret);
+    if(ret < 0)
+    {
+        printf("Error in writing file\n");
+        exit(1);
+    }
+    
     fsync(fd);
-    close (fd);
+    close(fd);
 }
 
 // Write. And create file if not exist.
@@ -38,18 +42,23 @@ void WriteFile(char* filepath, char* str, int len)
     int fd, ret;
 
     /* Open the file.  Clobber it if it exists. */
-    fd = open (filepath, O_RDWR | O_CREAT | O_TRUNC, S_IRWXU | S_IRWXG | S_IRWXO);
+    fd = open(filepath, O_RDWR | O_CREAT | O_TRUNC, S_IRWXU | S_IRWXG | S_IRWXO);
     
     if(fd == -1)
     {
-        PRINT("Error in openning file\n");
+        printf("Error in openning file\n");
         exit(1);
     }
     
     ret = write(fd, str, len);
-    PRINT("%d",ret);
+    if(ret < 0)
+    {
+        printf("Error in writing file\n");
+        exit(1);
+    }
+    
     fsync(fd);
-    close (fd);
+    close(fd);
 }
 
 void GenerateFilePath(char* src, char* filename)
@@ -68,4 +77,26 @@ void GenerateFilePath(char* src, char* filename)
     strcat(src, "-");
     strcat(src, hostname);
     src[MAX_FILEPATH_LEN - 1] = '\0';
+}
+
+unsigned int GetFileSize(char* filepath)
+{
+    struct stat st;
+    unsigned int size;
+    
+    stat(filepath, &st);
+    size = st.st_size;
+    return size;
+}
+
+int IsFileExist(char* filepath)
+{
+    struct stat sts;
+    
+    if ((stat (filepath, &sts)) == -1 && errno == ENOENT)
+    {
+        return -1;
+    }
+    
+    return 0;
 }

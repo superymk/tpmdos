@@ -10,11 +10,11 @@
 
 
 // Main entry of test cases.
-static int RunTestCases(void);
+static void RunTestCases(TSS_HCONTEXT* hContext);
 
 // List all the test cases.
-static int TestNVWrite(TSS_HCONTEXT hContext);
-static int TestNVRead(TSS_HCONTEXT hContext);
+static void TestNVWrite(TSS_HCONTEXT* hContext);
+static void TestNVRead(TSS_HCONTEXT* hContext);
 
 int main(int argc, char** argv)
 {
@@ -29,7 +29,7 @@ int main(int argc, char** argv)
     ret = SetAffinityCpu0();
     if (ret)
     {
-        printf("SetAffinityCpu0 Error Return.\n");
+        PRINT("SetAffinityCpu0 Error Return.\n");
         return -1;
     }
     
@@ -38,7 +38,7 @@ int main(int argc, char** argv)
     ReadMeta();
     
     // Run Test Cases.
-    RunTestCases();
+    RunTestCases(&hContext);
 
     // Finalize
     FinalizeTPM(&hContext, &hTPM, &hSRK, &hSRKPolicy);
@@ -52,13 +52,27 @@ int main(int argc, char** argv)
 //TestCases
 #define TEST_STR    "This is some test."
 #define TEST_STR_LENGTH  (strlen(TEST_STR))
-int TestNVWrite(TSS_HCONTEXT hContext)
+void TestNVWrite(TSS_HCONTEXT* hContext)
 {
-    char dataToStore[4096]=TEST_STR;
-    return WriteNVRAM(hContext, 40, 0x00011101, TEST_STR_LENGTH, (BYTE*)dataToStore);
+    char dataToStore[4096] = TEST_STR;
+    UINT32 ret = 0;
+    
+    ret = WriteNVRAM(hContext, 40, 0x00011101, TEST_STR_LENGTH, (BYTE*)dataToStore);
+    if ( ret == TPM_NVWRITE_ERROR)
+    {
+        PRINT("(%s FAILED) NVWrite Fail.\n", __func__ );
+        return;
+    }
+    else if ( ret == TPM_ATTIBUTE_ERROR)
+    {
+        PRINT("(%s FAILED) TPM Attribute Fail.\n", __func__ );
+        return;
+    }
+    
+    PRINT("(%s SUCCESSFUL) NVWrite Test Succeed! \n", __func__);
 }
 
-int TestNVRead(TSS_HCONTEXT hContext)
+void TestNVRead(TSS_HCONTEXT* hContext)
 {
     char dataToRead[4096]={0};
     UINT32 ret = 0;
@@ -66,56 +80,39 @@ int TestNVRead(TSS_HCONTEXT hContext)
     memset(dataToRead, 0, TEST_STR_LENGTH);
     
     ret = ReadNVRAM(hContext, 40, 0x00011101, TEST_STR_LENGTH, (BYTE*)dataToRead);
-    if(ret == -1)
+    if (ret == TPM_NVREAD_ERROR)
     {
-        printf("(Line %d, %s) ReadNVRAM() Error.\n", __LINE__ , __func__ );
-        return -1;
+        PRINT("(%s FAILED) NVRead Fail.\n", __func__ );
+        
+        return;
+    }
+    else if ( ret == TPM_ATTIBUTE_ERROR)
+    {
+        PRINT("(%s FAILED) TPM Attribute Fail.\n", __func__ );
+        return;
     }
     
     if(strcmp(dataToRead, TEST_STR))
     {
-        printf("(Line %d, %s) Read Result Error; dataToRead: %s.\n", __LINE__ , __func__, dataToRead);
-        return -1;
+        PRINT("(%s FAILED) Read Result Error: src_str:%s, dest_str:%s.\n", 
+                __func__, TEST_STR, dataToRead);
+        
+        return;
     }
     
-    return 0;
-    
+    PRINT("(%s SUCCESSFUL) NVRead Test Succeed! \n", __func__);
 }
 
 // Main entry of test cases.
-int RunTestCases()
+void RunTestCases(TSS_HCONTEXT* hContext)
 {
-    UINT32 ret = 0;
-    
-    // Test 1.
     while(1)
     {
-        PRINT("aaa\n");
-        IncGlobalMeta(L_TEST);
+        //IncGlobalMeta(L_TEST);
+        //extern void Log_SubmitResult(TPMDOS_LAST_RUN* result);
+        //void GNUPLOT_SubmitResult(TPMDOS_LAST_RUN* result);
         
-        // Other Tests.
-        //~ ret = TestNVWrite(hContext);
-        //~ if (ret == -1)
-        //~ {
-            //~ printf("(Line %d, %s) NVWrite Test Error Return.\n", __LINE__ , __func__ );
-            //~ return -1;
-        //~ }
-        //~ else
-        //~ { 
-            //~ printf("(Line %d, %s) NVWrite Test Succeed.\n", __LINE__ , __func__ );
-        //~ }
-        
-        //~ ret = TestNVRead(hContext);
-        //~ if (ret)
-        //~ {
-            //~ printf("(Line %d, %s) NVRead Test Error Return.\n", __LINE__ , __func__ );
-            //~ return -1;
-        //~ }
-        //~ else
-        //~ { 
-            //~ printf("(Line %d, %s) NVRead Test Succeed.\n", __LINE__ , __func__ );
-        //~ }
+        TestNVWrite(hContext);
+        TestNVRead(hContext);
     }
-    
-    
 }

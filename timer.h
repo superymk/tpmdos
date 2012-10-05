@@ -9,4 +9,5 @@
 extern void QueryPerformanceFrequency(uint64_t *frequency);
 extern void QueryPerformanceCounter(uint64_t *performance_count);
 
+extern void GetCurrentTime(char* str);
 #endif

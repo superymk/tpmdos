@@ -1,7 +1,10 @@
 #include "log.h"
 #include "file.h"
+#include "timer.h"
 #include <string.h>
 #include <inttypes.h>
+#include <stdarg.h>
+#include <stdio.h>
 
 TPMDOS_META g_meta;
     
@@ -19,11 +22,11 @@ static void WriteMeta()
     WriteFile(meta_fn, str, strlen(str));
 }
 
-void IncGlobalMeta(int item)
+void IncGlobalMeta(int last_run_type)
 {
     g_meta.g_run_cnt++;
     
-    switch(item)
+    switch(last_run_type)
     {
         case L_TEST:
             g_meta.l_test++;
@@ -39,7 +42,8 @@ void IncGlobalMeta(int item)
 }
 
 
-// Read metafile if exist, otherwise all are 0. 
+// Read metafile if exist, otherwise all are 0. This function is used in 
+// initialization
 void ReadMeta()
 {
     FILE *fp;
@@ -57,4 +61,34 @@ void ReadMeta()
     );
     
     fclose(fp);
+}
+
+void Log_SubmitResult(TPMDOS_LAST_RUN* result)
+{
+    LogVerbose("Result: run_type: %d, total_globalrun: %llu, total_localrun: %llu, perf_result: %llu\n",
+            result->last_run_type,
+            result->last_total_globalrun,
+            result->last_total_localrun,
+            result->last_perf_result
+    );
+}
+
+void LogVerbose(char* fmt,...)
+{
+	va_list args;
+	char temp_str[LOG_MSG_LENGTH] = { 0 };
+    char final_str[LOG_MSG_LENGTH] = {0};
+    char log_fn[MAX_FILEPATH_LEN];
+
+	va_start (args, fmt);
+	vsprintf (temp_str, fmt, args);
+    
+    GenerateFilePath (log_fn, VERBOSELOG_FILEPATH);
+    GetCurrentTime(final_str);
+    
+    strcat(final_str, temp_str);
+    final_str[LOG_MSG_LENGTH - 1] = '\0';
+    
+    AppendFile (log_fn, final_str, strlen(final_str));
+    va_end(args);
 }

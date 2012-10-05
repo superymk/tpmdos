@@ -3,7 +3,7 @@
 #include <assert.h>
 
 int WriteNVRAM(
-    TSS_HCONTEXT hContext, 
+    TSS_HCONTEXT* hContext, 
     UINT32 space_size, 
     UINT32 nv_index, 
     UINT32 ulDataLength, 
@@ -16,55 +16,55 @@ int WriteNVRAM(
     //char dataToStore[19]="This is some dat1.";
     
     /* Create a NVRAM object */
-    ret = Tspi_Context_CreateObject(hContext, TSS_OBJECT_TYPE_NV, 0, &hNVStore);
+    ret = Tspi_Context_CreateObject(*hContext, TSS_OBJECT_TYPE_NV, 0, &hNVStore);
     if (ret!=TSS_SUCCESS) 
     { 
-        DBG("Tspi_Context_CreateObject: %x\n",ret); 
-        return -1; 
+        LOG_TPM("Tspi_Context_CreateObject: %x\n",ret); 
+        return TPM_ATTIBUTE_ERROR; 
     }
     
     /*Next its arbitrary index will be 0x00011101 (00-FF are taken, along with 00011600). */
     ret = Tspi_SetAttribUint32(hNVStore, TSS_TSPATTRIB_NV_INDEX,0, nv_index);
     if (ret!=TSS_SUCCESS) 
     { 
-        DBG("Tspi_SetAttribUint32 index %x\n",ret); 
-        return -1; 
+        LOG_TPM("Tspi_SetAttribUint32 index %x\n",ret); 
+        return TPM_ATTIBUTE_ERROR; 
     }
     
     /* set its Attributes. First it is only writeable by the owner */
     ret = Tspi_SetAttribUint32(hNVStore,TSS_TSPATTRIB_NV_PERMISSIONS, 0, TPM_NV_PER_OWNERWRITE);
     if (ret!=TSS_SUCCESS) 
     { 
-        DBG("Tspi_SetAttribUint32 auth %x\n",ret); 
-        return -1; 
+        LOG_TPM("Tspi_SetAttribUint32 auth %x\n",ret); 
+        return TPM_ATTIBUTE_ERROR; 
     }
     
     /* next it holds 40 bytes of data */
     ret = Tspi_SetAttribUint32(hNVStore, TSS_TSPATTRIB_NV_DATASIZE,0, space_size);
     if (ret!=TSS_SUCCESS) 
     { 
-        DBG("Tspi_SetAttribUint32 size%x\n",ret); 
-        return -1; 
+        LOG_TPM("Tspi_SetAttribUint32 size%x\n",ret); 
+        return TPM_ATTIBUTE_ERROR; 
     }
         
     /* Set Policy for the NVRAM object using the Owner Auth */
-    ret = Tspi_Context_CreateObject(hContext, TSS_OBJECT_TYPE_POLICY, TSS_POLICY_USAGE, &hNewPolicy);
+    ret = Tspi_Context_CreateObject(*hContext, TSS_OBJECT_TYPE_POLICY, TSS_POLICY_USAGE, &hNewPolicy);
     ret = Tspi_Policy_SetSecret(hNewPolicy, TSS_SECRET_MODE_PLAIN, OWNER_PASSWD_LENGTH, (BYTE*)OWNER_PASSWD);
     ret = Tspi_Policy_AssignToObject(hNewPolicy,hNVStore);
 
     /* Write to the NVRAM space */
     ret = Tspi_NV_WriteValue(hNVStore, 0, ulDataLength, data);
-    if (ret!=TSS_SUCCESS) 
+    if (ret != TSS_SUCCESS) 
     { 
-        DBG("Tspi_NV_WriteValue: %x\n",ret); 
-        return -1;
+        LOG_TPM("Tspi_NV_WriteValue: %x\n",ret); 
+        return TPM_NVWRITE_ERROR;
     }
     
     return 0;
 }
 
 int ReadNVRAM(
-    TSS_HCONTEXT hContext, 
+    TSS_HCONTEXT *hContext, 
     UINT32 space_size, 
     UINT32 nv_index, 
     UINT32 ulDataLength, 
@@ -76,35 +76,35 @@ int ReadNVRAM(
     BYTE*           rdata = 0;
     
     /* Create a NVRAM object */
-    ret = Tspi_Context_CreateObject(hContext, TSS_OBJECT_TYPE_NV, 0, &hNVStore);
+    ret = Tspi_Context_CreateObject(*hContext, TSS_OBJECT_TYPE_NV, 0, &hNVStore);
     if (ret!=TSS_SUCCESS) 
     { 
-        DBG("Tspi_Context_CreateObject: %x\n",ret); 
-        return -1; 
+        LOG_TPM("Tspi_Context_CreateObject: %x\n",ret); 
+        return TPM_ATTIBUTE_ERROR; 
     }
     
     /*Next its arbitrary index will be 0x00011101 (00-FF are taken, along with 00011600). */
     ret = Tspi_SetAttribUint32(hNVStore, TSS_TSPATTRIB_NV_INDEX,0, nv_index);
     if (ret!=TSS_SUCCESS) 
     { 
-        DBG("Tspi_SetAttribUint32 index %x\n",ret); 
-        return -1; 
+        LOG_TPM("Tspi_SetAttribUint32 index %x\n",ret); 
+        return TPM_ATTIBUTE_ERROR; 
     }
     
     /* set its Attributes. First it is only writeable by the owner */
     ret = Tspi_SetAttribUint32(hNVStore,TSS_TSPATTRIB_NV_PERMISSIONS, 0, TPM_NV_PER_OWNERWRITE);
     if (ret!=TSS_SUCCESS) 
     { 
-        DBG("Tspi_SetAttribUint32 auth %x\n",ret); 
-        return -1; 
+        LOG_TPM("Tspi_SetAttribUint32 auth %x\n",ret); 
+        return TPM_ATTIBUTE_ERROR; 
     }
     
     /* next it holds 40 bytes of data */
     ret = Tspi_SetAttribUint32(hNVStore, TSS_TSPATTRIB_NV_DATASIZE, 0, space_size);
     if (ret!=TSS_SUCCESS) 
     { 
-        DBG("Tspi_SetAttribUint32 size%x\n",ret); 
-        return -1; 
+        LOG_TPM("Tspi_SetAttribUint32 size%x\n",ret); 
+        return TPM_ATTIBUTE_ERROR; 
     }
     
     /* No authorization needed to read from this NVRAM the way it was created. */
@@ -112,8 +112,8 @@ int ReadNVRAM(
     ret = Tspi_NV_ReadValue(hNVStore,0, &ulDataLength, &rdata);
     if (ret!=TSS_SUCCESS) 
     { 
-        DBG("Tspi_NV_ReadValue: %x\n",ret); 
-        return -1; 
+        LOG_TPM("Tspi_NV_ReadValue: %x\n",ret); 
+        return TPM_NVREAD_ERROR; 
     }
     
     memcpy(data, rdata, ulDataLength);
@@ -141,26 +141,26 @@ void InitTPM(
     
     // Pick the TPM you are talking to in this case the system TPM (which you connect to with ¡°NULL¡±)
     ret = Tspi_Context_Create(hContext); 
-    DBG("Create a Context\n",ret); 
+    LOG_TPM("Create a Context\n",ret); 
     ret = Tspi_Context_Connect(*hContext, NULL); 
-    DBG("Connect to TPM\n", ret);
+    LOG_TPM("Connect to TPM\n", ret);
         
     // Get the TPM handle
     ret = Tspi_Context_GetTpmObject(*hContext, hTPM); 
-    DBG("GetTPMHandle\n",ret); 
+    LOG_TPM("GetTPMHandle\n",ret); 
 
     //Get the SRK handle
     ret = Tspi_Context_LoadKeyByUUID(*hContext, TSS_PS_TYPE_SYSTEM, SRK_UUID, hSRK); 
-    DBG("Tspi_Context_Connect\n",ret);
+    LOG_TPM("Tspi_Context_Connect\n",ret);
 
     //Get the SRK policy
     ret = Tspi_GetPolicyObject(*hSRK, TSS_POLICY_USAGE, hSRKPolicy); 
-    DBG("Get TPM Policy\n" ,ret);
+    LOG_TPM("Get TPM Policy\n" ,ret);
     
     // Then we set the SRK policy to be the well known secret
     ret = Tspi_Policy_SetSecret(*hSRKPolicy,TSS_SECRET_MODE_SHA1,20, wks); 
     // Note: TSS_SECRET_MODE_SHA1 says ¡°Don¡¯t hash this. Just use the 20 bytes as is.
-    DBG("Tspi_Policy_Set_Secret\n",ret);
+    LOG_TPM("Tspi_Policy_Set_Secret\n",ret);
 }
 
 void FinalizeTPM(
