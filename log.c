@@ -6,7 +6,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-TPMDOS_META g_meta;
+// Should NEVER expose <g_meta>
+static TPMDOS_META g_meta;
     
 // Write. Create if not exist.
 static void WriteMeta()
