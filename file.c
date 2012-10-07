@@ -22,14 +22,17 @@ void AppendFile(char* filepath, char* str, int len)
     if(fd == -1)
     {
         printf("Error in openning file\n");
-        exit(1);
+        close(fd);
+        FATAL_ERROR();
     }
     
     ret = write(fd, str, len);
     if(ret < 0)
     {
         printf("Error in writing file\n");
-        exit(1);
+        fsync(fd);
+        close(fd);
+        FATAL_ERROR();
     }
     
     fsync(fd);
@@ -47,14 +50,17 @@ void WriteFile(char* filepath, char* str, int len)
     if(fd == -1)
     {
         printf("Error in openning file\n");
-        exit(1);
+        close(fd);
+        FATAL_ERROR();
     }
     
     ret = write(fd, str, len);
     if(ret < 0)
     {
         printf("Error in writing file\n");
-        exit(1);
+        fsync(fd);
+        close(fd);
+        FATAL_ERROR();
     }
     
     fsync(fd);

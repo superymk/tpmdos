@@ -82,6 +82,7 @@ int WriteNVRAM(
     TSS_HCONTEXT* hContext, 
     UINT32 space_size, 
     UINT32 nv_index, 
+    UINT32 attribute,
     UINT32 ulDataLength, 
     BYTE* data
 ) 
@@ -108,7 +109,7 @@ int WriteNVRAM(
     }
     
     /* set its Attributes. First it is only writeable by the owner */
-    ret = Tspi_SetAttribUint32(hNVStore,TSS_TSPATTRIB_NV_PERMISSIONS, 0, TPM_NV_PER_OWNERWRITE);
+    ret = Tspi_SetAttribUint32(hNVStore,TSS_TSPATTRIB_NV_PERMISSIONS, 0, attribute);
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM("Tspi_SetAttribUint32 auth %x\n",ret); 

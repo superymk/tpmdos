@@ -33,10 +33,45 @@
  */
 void PerfNVWrite40bytes(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM)
 {
+    // Setup
+    const UINT32 nv_index = 0x00011101;
+    const UINT32 space_sz = 40;
+    const UINT32 nv_attribute = TPM_NV_PER_OWNERWRITE;
+    
     char dataToStore[4096] = TEST_STR;
     UINT32 ret = 0;
     
-    ret = WriteNVRAM(hContext, 40, 0x00011101, TEST_STR_LENGTH, (BYTE*)dataToStore);
+    // Mark the new test
+    IncGlobalTestCounter();
+    
+    // Init
+    ret = IsNVIndexDefined(hTPM, nv_index);
+    if(!ret)
+    {
+        // Mark run type first - We'd like to get the perf of DEFINE_NVRAM at 
+        // the same time
+        StartNewRun(DEFINE_NVRAM);
+        ret = DefineNVRAM(hContext, hTPM, space_sz, nv_index, nv_attribute);
+        if(ret)
+        {
+            PRINT("(%s FAILED) DefineNVRAM.\n", __func__ );
+            return;
+        }
+        
+        EndCurrentRun();
+    }
+    else if (ret == TPMUTIL_GETCAP_ERROR)
+    {
+        PRINT("(%s FAILED) TPMUTIL_GETCAP_ERROR.\n", __func__ );
+        return;
+    }
+    
+    // Run
+    // Mark run type first
+    StartNewRun(WRITE_40BYTES);
+    
+    ret = WriteNVRAM(hContext, space_sz, nv_index, nv_attribute, 
+        TEST_STR_LENGTH, (BYTE*)dataToStore);
     if ( ret == TPM_NVWRITE_ERROR)
     {
         PRINT("(%s FAILED) NVWrite Fail.\n", __func__ );
@@ -48,6 +83,7 @@ void PerfNVWrite40bytes(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM)
         return;
     }
     
+    EndCurrentRun();
     PRINT("(%s SUCCESSFUL) NVWrite Perf Succeed! \n", __func__);
 }
 
@@ -81,8 +117,15 @@ void PerfNVRead40bytes(TSS_HCONTEXT* hContext)
     char dataToRead[4096]={0};
     UINT32 ret = 0;
     
+    // Mark the new test
+    IncGlobalTestCounter();
+    // Mark run type first
+    StartNewRun(READ_40BYTES);
+    
+    // Init
     memset(dataToRead, 0, TEST_STR_LENGTH);
     
+    // Run
     ret = ReadNVRAM(hContext, 40, 0x00011101, TEST_STR_LENGTH, (BYTE*)dataToRead);
     if (ret == TPM_NVREAD_ERROR)
     {
@@ -104,5 +147,6 @@ void PerfNVRead40bytes(TSS_HCONTEXT* hContext)
         return;
     }
     
+    EndCurrentRun();
     PRINT("(%s SUCCESSFUL) NVRead Perf Succeed! \n", __func__);
 }

@@ -7,6 +7,7 @@ all:
 	gcc *.c -D_GNU_SOURCE -DNDEBUG -ltspi -ltpm_unseal -Wno-unused-value -Wno-unused-result -O2 -o $(OUT)
 	
 install:
+	make all
 	mkdir -p ~/tpmdos
 	cp -f tpmdos hourly_send.sh run.sh ~/tpmdos
 	

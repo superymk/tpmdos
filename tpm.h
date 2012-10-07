@@ -48,6 +48,7 @@ extern int WriteNVRAM(
 TSS_HCONTEXT* hContext, 
     UINT32 space_size, 
     UINT32 nv_index, 
+    UINT32 attribute,
     UINT32 ulDataLength, 
     BYTE* data
 );
@@ -79,7 +80,8 @@ extern int DefineNVRAM(
 
 // Return 1 - defined. 0- undefined. 
 // Return TPMUTIL_GETCAP_ERROR on error.
-extern int IsNVIndexDefined(TSS_HTPM* hTpm, 
+extern int IsNVIndexDefined(
+    TSS_HTPM* hTpm, 
     UINT32 nv_index
 );
 

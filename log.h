@@ -1,6 +1,8 @@
 /* 
  * log.h -- Well, it controls how to log and what to log. And it include 
  * fail safe stuffs to recover execution in case of interruption.
+ * NOTE: One test may contains multiple runs. For example, in the NVWrite test,
+ * it may contains 1 define op. and 1 write op.
  */
 
 #ifndef _LOG_H
@@ -22,52 +24,95 @@
 #define VERBOSELOG_FILEPATH     "log"
 
 // Available <last_run_type>
-#define L_TEST      0   // This one is only used for test purpose
-//~ #define G_RUN_CNT   1
+// NOTE: <last_run_type> is also used to fetch the item recorded in <TPMDOS_META>
+#define G_RUN_CNT       0
+#define L_TEST          1   // This one is only used for test purpose
+#define WRITE_40BYTES   2
+#define READ_40BYTES    3
+#define DEFINE_NVRAM    4
 
+// Available Perf slot in <TPMDOS_CURRENT_RUN> Item
+#define PERF_RESULT     0
+#define PERF_SLOT_1     1
+#define PERF_SLOT_2     2
+#define PERF_SLOT_3     3
+#define PERF_SLOT_4     4
+#define PERF_SLOT_5     5
+#define PERF_SLOT_6     6
+#define PERF_SLOT_7     7
+#define PERF_SLOT_8     8
+#define PERF_SLOT_9     9
 
 // Record the latest finished run result.
 typedef struct
 {
     // Record the experiment category.
-    int last_run_type;
+    uint32_t run_type;
     
     // Record the date-time
     char timestamp[50];
     
-    // Record the value of "total run"
-    long long unsigned int last_total_globalrun;
+    // Record the perf result (running time (us))
+    uint64_t perf_result[10];
     
-    // Record the value of "total run for this type"
-    long long unsigned int last_total_localrun;
-    
-    // Record the last result (running time (us))
-    long long unsigned int last_perf_result;
-    
-    // Record test specific perf times. (Tests need to define their meanings)
-    long long unsigned int last_specific_perf[8];
-    
-} TPMDOS_LAST_RUN, *PTPMDOS_LAST_RUN;
+} TPMDOS_CURRENT_RUN, *PTPMDOS_CURRENT_RUN;
 
 // Counters to record test times. (Used for restarting app. on failure)
 typedef struct
 {
-    long long unsigned int g_run_cnt;
-    long long unsigned int l_test;//
+    uint64_t g_test_cnt;
+    uint64_t L_test;// Test purpose only
+    uint64_t Write_40bytes;
+    uint64_t Read_40bytes;
+    uint64_t Define_NVRAM;
     
 } TPMDOS_META, *PTPMDOS_META;
 
 // Increament coutners in the global <TPMDOS_META>
-extern void IncGlobalMeta(int last_run_type);
+//~ extern void IncGlobalMeta(int last_run_type);
+
+// Reason:Some tests should not increment run counter, for example, tpm_define
+// ops. within the tpm_write ops. But we should also record their perf measure.
+// So the developer of perfcases should decide when to increment the run 
+// counter and keep it correct.
+extern void IncGlobalTestCounter(void);
+extern uint64_t GetGlobalTestCounter(void);
+
+// Get the corresponding value stored in the position <last_run_type>
+extern uint64_t GetMetaValue(int last_run_type);
+
+// Start a run.
+extern void StartNewRun(int run_type); 
+// Finish a run.
+extern void EndCurrentRun(void);
+// Return the type of current run.
+extern int GetCurrentRunType(void);
+// Translate the <run_type> into <str>
+extern void TranslateRunType(int run_type, char* str);
+// Return the timestamp of the current run 
+extern const char* GetTimeStamp(void);
+
+
+// Start a performance metric at perf slot <index>
+extern void BeginPerf(int index);
+// Finish and record the metric at perf slot <index> 
+extern void EndPerf(int index);
+// Retrieve the result at perf slot <index>
+extern uint64_t GetPerf(int index);
+
+
+
+
+
 
 // Read metafile if exist, otherwise all are 0. 
-extern void ReadMeta();
+extern void ReadMeta(void);
 
-// Format and output the result
-extern void Log_SubmitResult(TPMDOS_LAST_RUN* result);
 
 //plain
 extern void LogVerbose(char* fmt, ...);
 
+// Force Exit due to FATAL ERROR!!
+extern void FATAL_ERROR();
 
 #endif
