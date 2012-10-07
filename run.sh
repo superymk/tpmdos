@@ -11,7 +11,7 @@ fi
 
 # Execute <tpmdos>
 appfolder=`dirname $0`
-$appfolder/tpmdos
+$appfolder/tpmdos &
 
 # Start uploading result to google code
 exec 1>$f/submit_log 2>$f/submit_log
@@ -19,11 +19,11 @@ exec 1>$f/submit_log 2>$f/submit_log
 cd $f
 # Wait 10s so <tpmdos> can generate some output
 sleep 10s
-git add $f/gnuplot-defineNV-`hostname`
-git add $f/gnuplot-read40-`hostname`
-git add $f/gnuplot-write40-`hostname`
-git add $f/metadata-`hostname`
-git add $f/log-`hostname`
+git add gnuplot-defineNV-`hostname`
+git add gnuplot-read40-`hostname`
+git add gnuplot-write40-`hostname`
+git add metadata-`hostname`
+git add log-`hostname`
 
 cd ..
 

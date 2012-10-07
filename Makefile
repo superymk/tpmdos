@@ -9,7 +9,7 @@ all:
 install:
 	make all
 	mkdir -p ~/tpmdos
-	cp -f tpmdos hourly_send.sh run.sh ~/tpmdos
+	cp -f tpmdos run.sh ~/tpmdos
 	
 uninstall:
 	rm -rf ~/tpmdos
