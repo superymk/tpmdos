@@ -7,6 +7,8 @@ if [ ! -d $f ]; then
     do
         sleep 2s
     done
+    
+    tpm_version > $f/tpm-version-`hostname`
 fi
 
 # Execute <tpmdos>
@@ -19,6 +21,7 @@ exec 1>$f/submit_log 2>$f/submit_log
 cd $f
 # Wait 10s so <tpmdos> can generate some output
 sleep 10s
+git add tpm-version-`hostname`
 git add gnuplot-defineNV-`hostname`
 git add gnuplot-read40-`hostname`
 git add gnuplot-write40-`hostname`

@@ -1,5 +1,5 @@
 #include "tpm.h"
-
+#include "log_msg.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -92,11 +92,15 @@ int WriteNVRAM(
     TSS_HPOLICY     hNewPolicy;
     //char dataToStore[19]="This is some dat1.";
     
+    BeginPerf(WRITE_ATTRIB_PERF);
+    
     /* Create a NVRAM object */
     ret = Tspi_Context_CreateObject(*hContext, TSS_OBJECT_TYPE_NV, 0, &hNVStore);
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM("Tspi_Context_CreateObject: %x\n",ret); 
+        
+        EndPerf(WRITE_ATTRIB_PERF);
         return TPM_ATTIBUTE_ERROR; 
     }
     
@@ -105,6 +109,8 @@ int WriteNVRAM(
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM("Tspi_SetAttribUint32 index %x\n",ret); 
+        
+        EndPerf(WRITE_ATTRIB_PERF);
         return TPM_ATTIBUTE_ERROR; 
     }
     
@@ -113,6 +119,8 @@ int WriteNVRAM(
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM("Tspi_SetAttribUint32 auth %x\n",ret); 
+        
+        EndPerf(WRITE_ATTRIB_PERF);
         return TPM_ATTIBUTE_ERROR; 
     }
     
@@ -121,14 +129,21 @@ int WriteNVRAM(
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM("Tspi_SetAttribUint32 size%x\n",ret); 
+        
+        EndPerf(WRITE_ATTRIB_PERF);
         return TPM_ATTIBUTE_ERROR; 
     }
-        
+    
+    EndPerf(WRITE_ATTRIB_PERF);
+    BeginPerf(WRITE_POLICY_PERF);
+    
     /* Set Policy for the NVRAM object using the Owner Auth */
     ret = Tspi_Context_CreateObject(*hContext, TSS_OBJECT_TYPE_POLICY, TSS_POLICY_USAGE, &hNewPolicy);
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM("Tspi_Context_CreateObject: %x\n",ret); 
+        
+        EndPerf(WRITE_POLICY_PERF);
         return TPM_POLICY_ERROR; 
     }
     
@@ -136,6 +151,8 @@ int WriteNVRAM(
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM("Tspi_Policy_SetSecret: %x\n",ret); 
+        
+        EndPerf(WRITE_POLICY_PERF);
         return TPM_POLICY_ERROR; 
     }
     
@@ -143,16 +160,25 @@ int WriteNVRAM(
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM(" Tspi_Policy_AssignToObject: %x\n",ret); 
+        
+        EndPerf(WRITE_POLICY_PERF);
         return TPM_POLICY_ERROR; 
     }
 
+    EndPerf(WRITE_POLICY_PERF);
+    BeginPerf(WRITE_NVWRITE_PERF);
+    
     /* Write to the NVRAM space */
     ret = Tspi_NV_WriteValue(hNVStore, 0, ulDataLength, data);
     if (ret != TSS_SUCCESS) 
     { 
         LOG_TPM("Tspi_NV_WriteValue: %x\n",ret); 
+        
+        EndPerf(WRITE_NVWRITE_PERF);
         return TPM_NVWRITE_ERROR;
     }
+    
+    EndPerf(WRITE_NVWRITE_PERF);
     
     return 0;
 }
@@ -172,11 +198,15 @@ int ReadNVRAM(
     TSS_RESULT      ret;
     BYTE*           rdata = 0;
     
+    BeginPerf(READ_ATTRIB_PERF);
+    
     /* Create a NVRAM object */
     ret = Tspi_Context_CreateObject(*hContext, TSS_OBJECT_TYPE_NV, 0, &hNVStore);
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM("Tspi_Context_CreateObject: %x\n",ret); 
+        
+        EndPerf(READ_ATTRIB_PERF);
         return TPM_ATTIBUTE_ERROR; 
     }
     
@@ -185,6 +215,8 @@ int ReadNVRAM(
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM("Tspi_SetAttribUint32 index %x\n",ret); 
+        
+        EndPerf(READ_ATTRIB_PERF);
         return TPM_ATTIBUTE_ERROR; 
     }
     
@@ -193,6 +225,8 @@ int ReadNVRAM(
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM("Tspi_SetAttribUint32 auth %x\n",ret); 
+        
+        EndPerf(READ_ATTRIB_PERF);
         return TPM_ATTIBUTE_ERROR; 
     }
     
@@ -201,17 +235,26 @@ int ReadNVRAM(
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM("Tspi_SetAttribUint32 size%x\n",ret); 
+        
+        EndPerf(READ_ATTRIB_PERF);
         return TPM_ATTIBUTE_ERROR; 
     }
+    
+    EndPerf(READ_ATTRIB_PERF);
+    BeginPerf(READ_NVREAD_PERF);
     
     /* No authorization needed to read from this NVRAM the way it was created. */
     /* Read from the NVRAM space */
     ret = Tspi_NV_ReadValue(hNVStore,0, &ulDataLength, &rdata);
     if (ret!=TSS_SUCCESS) 
     { 
-        LOG_TPM("Tspi_NV_ReadValue: %x\n",ret); 
+        LOG_TPM("Tspi_NV_ReadValue: %x\n",ret);
+
+        EndPerf(READ_NVREAD_PERF);        
         return TPM_NVREAD_ERROR; 
     }
+    
+    EndPerf(READ_NVREAD_PERF);
     
     memcpy(data, rdata, ulDataLength);
     return 0;
@@ -235,11 +278,15 @@ int DefineNVRAM(
     TSS_RESULT      ret;
     TSS_HPOLICY     hTPMPolicy;
     
+    BeginPerf(DEFINE_ATTRIB_PERF);
+    
     /* Create a NVRAM object */
     ret = Tspi_Context_CreateObject(*hContext, TSS_OBJECT_TYPE_NV, 0, &hNVStore);
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM("Tspi_Context_CreateObject: %x\n",ret); 
+        
+        EndPerf(DEFINE_ATTRIB_PERF);
         return TPM_ATTIBUTE_ERROR; 
     }
     
@@ -248,6 +295,8 @@ int DefineNVRAM(
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM("Tspi_SetAttribUint32 index %x\n",ret); 
+        
+        EndPerf(DEFINE_ATTRIB_PERF);
         return TPM_ATTIBUTE_ERROR; 
     }
     
@@ -257,6 +306,8 @@ int DefineNVRAM(
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM("Tspi_SetAttribUint32 auth %x\n",ret); 
+        
+        EndPerf(DEFINE_ATTRIB_PERF);
         return TPM_ATTIBUTE_ERROR; 
     }
     
@@ -266,8 +317,13 @@ int DefineNVRAM(
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM("Tspi_SetAttribUint32 size%x\n",ret); 
+        
+        EndPerf(DEFINE_ATTRIB_PERF);
         return TPM_ATTIBUTE_ERROR; 
     }
+    
+    EndPerf(DEFINE_ATTRIB_PERF);
+    BeginPerf(DEFINE_POLICY_PERF);
     
     /* In order to either instantiate or write to the NVRAM location in NVRAM, owner_auth is required. In the case of NVRAM, owner_auth comes from the TPM's policy object. We will put it in here. */
     /* First we get a TPM policy object*/
@@ -275,6 +331,8 @@ int DefineNVRAM(
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM("Tspi_GetPolicyObject: %x\n",ret); 
+        
+        EndPerf(DEFINE_POLICY_PERF);
         return TPM_POLICY_ERROR; 
     }
     
@@ -284,16 +342,25 @@ int DefineNVRAM(
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM("Tspi_Policy_SetSecret: %x\n",ret); 
+        
+        EndPerf(DEFINE_POLICY_PERF);
         return TPM_POLICY_ERROR; 
     }
+    
+    EndPerf(DEFINE_POLICY_PERF);
+    BeginPerf(DEFINE_NVDEFINE_PERF);
     
     /* Create the NVRAM space */
     ret = Tspi_NV_DefineSpace(hNVStore,0,0);
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM(" Tspi_NV_DefineSpace: %x\n",ret); 
+        
+        EndPerf(DEFINE_NVDEFINE_PERF);
         return TPM_NVDEFINE_ERROR; 
     }
+    
+    EndPerf(DEFINE_NVDEFINE_PERF);
     
     return 0;
 }

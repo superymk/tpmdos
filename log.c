@@ -16,7 +16,7 @@ static TPMDOS_META          g_meta;
 static TPMDOS_CURRENT_RUN   g_cur_run;
 
 // Write. Create if not exist.
-static void WriteMeta()
+static void WriteMetaFile()
 {
     char meta_fn[MAX_FILEPATH_LEN];
     char str[256] = {0};
@@ -57,56 +57,27 @@ static void SubmitLog(int run_type)
 
 static void IncGlobalMeta(int run_type)
 {
-    switch(run_type)
+    if ( (run_type <= G_RUN_CNT) || (run_type >= INVALID_BOUND) )
     {
-        case L_TEST:
-            g_meta.L_test++;
-            break;
-        
-        case WRITE_40BYTES:
-            g_meta.Write_40bytes++;
-            break;
-         
-        case READ_40BYTES:
-            g_meta.Read_40bytes++;
-            break;
-        
-        case DEFINE_NVRAM:
-            g_meta.Define_NVRAM++;
-            break;
-
-        default:
-            PRINT("Invalid Update Item.\n");
-            FATAL_ERROR();
+        PRINT("Invalid Update Item.\n");
+        FATAL_ERROR();
     }
     
-    WriteMeta();
+    ((uint64_t*)&g_meta)[run_type]++;
+    
+    WriteMetaFile();
 }
 
 // Get the corresponding value stored in the position <run_type>
 uint64_t GetMetaValue(int run_type)
 {
-    switch(run_type)
+    if ( (run_type <= G_RUN_CNT) || (run_type >= INVALID_BOUND) )
     {
-        case L_TEST:
-            return g_meta.L_test;
-        
-        case WRITE_40BYTES:
-            return g_meta.Write_40bytes;
-         
-        case READ_40BYTES:
-            return g_meta.Read_40bytes;
-        
-        case DEFINE_NVRAM:
-            return g_meta.Define_NVRAM;
-
-        default:
-            PRINT("Invalid <run_type>.\n");
-            FATAL_ERROR(); // FATAL!
+        PRINT("Invalid <run_type>.\n");
+        FATAL_ERROR();
     }
     
-    // never returns here.
-    return -1;
+    return ((uint64_t*)&g_meta)[run_type];
 }
 
 // Reason:Some tests should not increment run counter, for example, tpm_define
@@ -178,41 +149,23 @@ uint64_t GetPerf(int index)
 // Translate the <run_type> into <str>
 void TranslateRunType(int run_type, char* str)
 {
+    char *run_type_str[]= 
+    { NULL, "L_TEST","WRITE_40BYTES","READ_40BYTES","DEFINE_NVRAM"};
     char *result;
-    
-    switch(run_type)
+
+    if ( (run_type <= G_RUN_CNT) || (run_type >= INVALID_BOUND) )
     {
-        case L_TEST:
-            result= "TEST";
-            memcpy(str, result, strlen(result));
-            return;
-
-        case WRITE_40BYTES:
-            result= "WRITE40BYTES";
-            memcpy(str, result, strlen(result));
-            return;
-         
-        case READ_40BYTES:
-            result= "READ40BYTES";
-            memcpy(str, result, strlen(result));
-            return;
-        
-        case DEFINE_NVRAM:
-            result= "DEFINE_NVRAM";
-            memcpy(str, result, strlen(result));
-            return;
-
-        default:
-            PRINT("Invalid <run_type>.\n");
-            FATAL_ERROR(); // FATAL!
+        PRINT("Invalid Update Item.\n");
+        FATAL_ERROR();
     }
     
-    return;
+    result = run_type_str[run_type];
+    memcpy(str, result, strlen(result));
 }
 
 // Read metafile if exist, otherwise all are 0. This function is used in 
 // initialization
-void ReadMeta()
+void ReadMetaFile()
 {
     FILE *fp;
     char meta_fn[MAX_FILEPATH_LEN];

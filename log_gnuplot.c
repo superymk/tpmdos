@@ -10,14 +10,15 @@ static void GenerateHeader(char* log_fn, char* special_header)
     {
         // The log file is or will be newly generated.
         char header[LOG_MSG_LENGTH] = {0};
-        char* common_header = "#\t(Date/Time)\t(Total Run)\t(Run for this type)\t(Elapsed Time (us))";
+        char* common_header = "#\t(Date/Time)\t(Total Run)\t(Run for this type)";
+        int common_header_len = strlen(common_header);
         
-        strncpy( header, common_header, LOG_MSG_LENGTH);
+        strncpy( header, common_header, common_header_len);
         
         if(special_header)
         {
             strncat( header, "\t", 1);
-            strncat( header, special_header, LOG_MSG_LENGTH);
+            strncat( header, special_header, (LOG_MSG_LENGTH - 1 - common_header_len));
         }
         
         strncat( header, "\n", 1);
@@ -37,18 +38,31 @@ void GNUPLOT_SubmitResult(char* result)
         //todo: Add new log output methods here for new test cases.
         case L_TEST:
             GenerateFilePath(log_fn, GNUPLOT_TEST_FILEPATH);
+            GenerateHeader(log_fn, NULL);
             break;
         
         case WRITE_40BYTES:
             GenerateFilePath(log_fn, GNUPLOT_WRITE_40BYTES_FILEPATH);
+            GenerateHeader(
+                log_fn, 
+                "(WRITE_NVWRITE_PERF (us))\t(WRITE_ATTRIB_PERF (us))\t(WRITE_POLICY_PERF (us))"
+            );
             break;
         
         case READ_40BYTES:
             GenerateFilePath(log_fn, GNUPLOT_READ_40BYTES_FILEPATH);
+            GenerateHeader(
+                log_fn, 
+                "(READ_NVREAD_PERF (us))\t(READ_ATTRIB_PERF (us))"
+            );
             break;
         
         case DEFINE_NVRAM:
             GenerateFilePath(log_fn, GNUPLOT_DEFINE_NVRAM_FILEPATH);
+            GenerateHeader(
+                log_fn, 
+                "(DEFINE_NVDEFINE_PERF (us))\t(DEFINE_ATTRIB_PERF (us))\t(DEFINE_POLICY_PERF (us))"
+            );
             break;
         
         default:
@@ -57,8 +71,5 @@ void GNUPLOT_SubmitResult(char* result)
             return;
     }
     
-    
-    GenerateHeader(log_fn, NULL);
-
     AppendFile (log_fn, result, strlen(result));
 }

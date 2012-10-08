@@ -26,22 +26,11 @@
 // Available <last_run_type>
 // NOTE: <last_run_type> is also used to fetch the item recorded in <TPMDOS_META>
 #define G_RUN_CNT       0
-#define L_TEST          1   // This one is only used for test purpose
+#define L_TEST          1  // This one is only used for test purpose
 #define WRITE_40BYTES   2
 #define READ_40BYTES    3
 #define DEFINE_NVRAM    4
-
-// Available Perf slot in <TPMDOS_CURRENT_RUN> Item
-#define PERF_RESULT     0
-#define PERF_SLOT_1     1
-#define PERF_SLOT_2     2
-#define PERF_SLOT_3     3
-#define PERF_SLOT_4     4
-#define PERF_SLOT_5     5
-#define PERF_SLOT_6     6
-#define PERF_SLOT_7     7
-#define PERF_SLOT_8     8
-#define PERF_SLOT_9     9
+#define INVALID_BOUND   5  // Increase this bound to include new items. 
 
 // Record the latest finished run result.
 typedef struct
@@ -101,12 +90,8 @@ extern void EndPerf(int index);
 extern uint64_t GetPerf(int index);
 
 
-
-
-
-
 // Read metafile if exist, otherwise all are 0. 
-extern void ReadMeta(void);
+extern void ReadMetaFile(void);
 
 
 //plain

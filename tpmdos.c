@@ -31,7 +31,7 @@ int main(int argc, char** argv)
     
     // Init
     InitTPM(&hContext, &hTPM, &hSRK, &hSRKPolicy);
-    ReadMeta();
+    ReadMetaFile();
     
     // Run Perf Cases.
     RunPerfCases(&hContext, &hTPM);

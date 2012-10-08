@@ -11,7 +11,6 @@ void FormatMsg(int log_type, char* msg)
             if(log_type == LOG_GENERAL)
             {
                 char        type_str[LOG_MSG_LENGTH] = {0};
-                uint64_t    perf_result = GetPerf(PERF_RESULT);
                 uint64_t    test_counter = GetGlobalTestCounter();
                 uint64_t    total_localrun = GetMetaValue(GetCurrentRunType());
                 
@@ -20,13 +19,12 @@ void FormatMsg(int log_type, char* msg)
                     type_str,
                     (long long unsigned int)test_counter, 
                     (long long unsigned int)total_localrun,
-                    (long long unsigned int)perf_result
+                    (long long unsigned int)GetPerf(0)
                 );
             }
             else if(log_type == LOG_GNUPLOT)
             {
                 const char* timestamp = GetTimeStamp();
-                uint64_t    perf_result = GetPerf(PERF_RESULT);
                 uint64_t    test_counter = GetGlobalTestCounter();
                 uint64_t    total_localrun = GetMetaValue(GetCurrentRunType());
                 // For the L_TEST, the output data format:
@@ -35,7 +33,7 @@ void FormatMsg(int log_type, char* msg)
                         timestamp, 
                         (long long unsigned int)test_counter, 
                         (long long unsigned int)total_localrun,
-                        (long long unsigned int)perf_result
+                        (long long unsigned int)GetPerf(0)
                 );
             }
             break;
@@ -44,31 +42,33 @@ void FormatMsg(int log_type, char* msg)
            if(log_type == LOG_GENERAL)
             {
                 char        type_str[LOG_MSG_LENGTH] = {0};
-                uint64_t    perf_result = GetPerf(PERF_RESULT);
                 uint64_t    test_counter = GetGlobalTestCounter();
                 uint64_t    total_localrun = GetMetaValue(GetCurrentRunType());
                 
                 TranslateRunType(GetCurrentRunType(), type_str);
-                sprintf(msg, "Result: run_type: %s, total_test: %llu, total_localrun: %llu, perf_result: %llu\n",
+                sprintf(msg, "Result: run_type: %s, total_test: %llu, total_localrun: %llu, WRITE_NVWRITE_PERF: %llu, WRITE_ATTRIB_PERF: %llu, WRITE_POLICY_PERF: %llu\n",
                     type_str,
                     (long long unsigned int)test_counter, 
                     (long long unsigned int)total_localrun,
-                    (long long unsigned int)perf_result
+                    (long long unsigned int)GetPerf(WRITE_NVWRITE_PERF),
+                    (long long unsigned int)GetPerf(WRITE_ATTRIB_PERF),
+                    (long long unsigned int)GetPerf(WRITE_POLICY_PERF)
                 );
             }
             else if(log_type == LOG_GNUPLOT)
             {
                 const char* timestamp = GetTimeStamp();
-                uint64_t    perf_result = GetPerf(PERF_RESULT);
                 uint64_t    test_counter = GetGlobalTestCounter();
                 uint64_t    total_localrun = GetMetaValue(GetCurrentRunType());
                 // For the L_TEST, the output data format:
-                // #   (Date/Time)         (Total Run)    (Run for this type)      (Elapsed Time (us))
-                sprintf(msg, "\t%s\t%llu\t%llu\t%llu\n", 
+                // #   (Date/Time)         (Total Run)    (Run for this type)      (WRITE_NVWRITE_PERF (us))
+                sprintf(msg, "\t%s\t%llu\t%llu\t%llu\t%llu\t%llu\n", 
                         timestamp, 
                         (long long unsigned int)test_counter, 
                         (long long unsigned int)total_localrun,
-                        (long long unsigned int)perf_result
+                        (long long unsigned int)GetPerf(WRITE_NVWRITE_PERF),
+                        (long long unsigned int)GetPerf(WRITE_ATTRIB_PERF),
+                        (long long unsigned int)GetPerf(WRITE_POLICY_PERF)
                 );
             }
             break;
@@ -77,31 +77,31 @@ void FormatMsg(int log_type, char* msg)
             if(log_type == LOG_GENERAL)
             {
                 char        type_str[LOG_MSG_LENGTH] = {0};
-                uint64_t    perf_result = GetPerf(PERF_RESULT);
                 uint64_t    test_counter = GetGlobalTestCounter();
                 uint64_t    total_localrun = GetMetaValue(GetCurrentRunType());
                 
                 TranslateRunType(GetCurrentRunType(), type_str);
-                sprintf(msg, "Result: run_type: %s, total_test: %llu, total_localrun: %llu, perf_result: %llu\n",
+                sprintf(msg, "Result: run_type: %s, total_test: %llu, total_localrun: %llu, , READ_NVREAD_PERF: %llu, READ_ATTRIB_PERF: %llu\n",
                     type_str,
                     (long long unsigned int)test_counter, 
                     (long long unsigned int)total_localrun,
-                    (long long unsigned int)perf_result
+                    (long long unsigned int)GetPerf(READ_NVREAD_PERF),
+                    (long long unsigned int)GetPerf(READ_ATTRIB_PERF)
                 );
             }
             else if(log_type == LOG_GNUPLOT)
             {
                 const char* timestamp = GetTimeStamp();
-                uint64_t    perf_result = GetPerf(PERF_RESULT);
                 uint64_t    test_counter = GetGlobalTestCounter();
                 uint64_t    total_localrun = GetMetaValue(GetCurrentRunType());
                 // For the L_TEST, the output data format:
-                // #   (Date/Time)         (Total Run)    (Run for this type)      (Elapsed Time (us))
-                sprintf(msg, "\t%s\t%llu\t%llu\t%llu\n", 
+                // #   (Date/Time)         (Total Run)    (Run for this type)      (READ_NVREAD_PERF (us))
+                sprintf(msg, "\t%s\t%llu\t%llu\t%llu\t%llu\n", 
                         timestamp, 
                         (long long unsigned int)test_counter, 
                         (long long unsigned int)total_localrun,
-                        (long long unsigned int)perf_result
+                        (long long unsigned int)GetPerf(READ_NVREAD_PERF),
+                        (long long unsigned int)GetPerf(READ_ATTRIB_PERF)
                 );
             }
             break;
@@ -110,31 +110,33 @@ void FormatMsg(int log_type, char* msg)
             if(log_type == LOG_GENERAL)
             {
                 char        type_str[LOG_MSG_LENGTH] = {0};
-                uint64_t    perf_result = GetPerf(PERF_RESULT);
                 uint64_t    test_counter = GetGlobalTestCounter();
                 uint64_t    total_localrun = GetMetaValue(GetCurrentRunType());
                 
                 TranslateRunType(GetCurrentRunType(), type_str);
-                sprintf(msg, "Result: run_type: %s, total_test: %llu, total_localrun: %llu, perf_result: %llu\n",
+                sprintf(msg, "Result: run_type: %s, total_test: %llu, total_localrun: %llu, DEFINE_NVDEFINE_PERF: %llu, DEFINE_ATTRIB_PERF: %llu, DEFINE_POLICY_PERF: %llu\n\n",
                     type_str,
                     (long long unsigned int)test_counter, 
                     (long long unsigned int)total_localrun,
-                    (long long unsigned int)perf_result
+                    (long long unsigned int)GetPerf(DEFINE_NVDEFINE_PERF),
+                    (long long unsigned int)GetPerf(DEFINE_ATTRIB_PERF),
+                    (long long unsigned int)GetPerf(DEFINE_POLICY_PERF)
                 );
             }
             else if(log_type == LOG_GNUPLOT)
             {
                 const char* timestamp = GetTimeStamp();
-                uint64_t    perf_result = GetPerf(PERF_RESULT);
                 uint64_t    test_counter = GetGlobalTestCounter();
                 uint64_t    total_localrun = GetMetaValue(GetCurrentRunType());
                 // For the L_TEST, the output data format:
-                // #   (Date/Time)         (Total Run)    (Run for this type)      (Elapsed Time (us))
-                sprintf(msg, "\t%s\t%llu\t%llu\t%llu\n", 
+                // #   (Date/Time)         (Total Run)    (Run for this type)      (DEFINE_NVDEFINE_PERF (us))
+                sprintf(msg, "\t%s\t%llu\t%llu\t%llu\t%llu\t%llu\n", 
                         timestamp, 
                         (long long unsigned int)test_counter, 
                         (long long unsigned int)total_localrun,
-                        (long long unsigned int)perf_result
+                        (long long unsigned int)GetPerf(DEFINE_NVDEFINE_PERF),
+                        (long long unsigned int)GetPerf(DEFINE_ATTRIB_PERF),
+                        (long long unsigned int)GetPerf(DEFINE_POLICY_PERF)
                 );
             }
             break;

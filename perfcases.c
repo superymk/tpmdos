@@ -1,10 +1,11 @@
 #include "perfcases.h"
+#include "str.h"
 #include "tpm.h"
 #include "log.h"
+#include <stdio.h>
+#include <string.h>
 
 //PerfCases
-#define TEST_STR    "This is some test."
-#define TEST_STR_LENGTH  (strlen(TEST_STR))
 
 /*
  * NAME
@@ -31,27 +32,25 @@
  *      NVRAM write failure.
  *
  */
+ #define WRITE40_SPACE_SZ   40
 void PerfNVWrite40bytes(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM)
 {
     // Setup
     const UINT32 nv_index = 0x00011101;
-    const UINT32 space_sz = 40;
     const UINT32 nv_attribute = TPM_NV_PER_OWNERWRITE;
-    
-    char dataToStore[4096] = TEST_STR;
+    static char dataToStore[WRITE40_SPACE_SZ + 1];
     UINT32 ret = 0;
     
     // Mark the new test
     IncGlobalTestCounter();
     
-    // Init
     ret = IsNVIndexDefined(hTPM, nv_index);
     if(!ret)
     {
         // Mark run type first - We'd like to get the perf of DEFINE_NVRAM at 
         // the same time
         StartNewRun(DEFINE_NVRAM);
-        ret = DefineNVRAM(hContext, hTPM, space_sz, nv_index, nv_attribute);
+        ret = DefineNVRAM(hContext, hTPM, WRITE40_SPACE_SZ, nv_index, nv_attribute);
         if(ret)
         {
             PRINT("(%s FAILED) DefineNVRAM.\n", __func__ );
@@ -70,8 +69,9 @@ void PerfNVWrite40bytes(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM)
     // Mark run type first
     StartNewRun(WRITE_40BYTES);
     
-    ret = WriteNVRAM(hContext, space_sz, nv_index, nv_attribute, 
-        TEST_STR_LENGTH, (BYTE*)dataToStore);
+    PRINT("(%s INFO) NVWrite will write content:%s \n", __func__, dataToStore);
+    ret = WriteNVRAM(hContext, WRITE40_SPACE_SZ, nv_index, nv_attribute, 
+        WRITE40_SPACE_SZ, (BYTE*)dataToStore);
     if ( ret == TPM_NVWRITE_ERROR)
     {
         PRINT("(%s FAILED) NVWrite Fail.\n", __func__ );
@@ -85,6 +85,11 @@ void PerfNVWrite40bytes(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM)
     
     EndCurrentRun();
     PRINT("(%s SUCCESSFUL) NVWrite Perf Succeed! \n", __func__);
+    
+    // Finalize
+    // Generate a comprehensive string for next write.
+    FLIP_BYTES(dataToStore, WRITE40_SPACE_SZ);
+    dataToStore[WRITE40_SPACE_SZ] = '\0';
 }
 
 /*
@@ -112,10 +117,12 @@ void PerfNVWrite40bytes(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM)
  *      read failure and string comparison failure.
  *
  */
+ #define READ40_SPACE_SZ    40
 void PerfNVRead40bytes(TSS_HCONTEXT* hContext)
 {
-    char dataToRead[4096]={0};
+    const UINT32 nv_index = 0x00011101;
     UINT32 ret = 0;
+    char dataToRead[READ40_SPACE_SZ];
     
     // Mark the new test
     IncGlobalTestCounter();
@@ -123,10 +130,10 @@ void PerfNVRead40bytes(TSS_HCONTEXT* hContext)
     StartNewRun(READ_40BYTES);
     
     // Init
-    memset(dataToRead, 0, TEST_STR_LENGTH);
+    memset(dataToRead, 0, READ40_SPACE_SZ);
     
     // Run
-    ret = ReadNVRAM(hContext, 40, 0x00011101, TEST_STR_LENGTH, (BYTE*)dataToRead);
+    ret = ReadNVRAM(hContext, READ40_SPACE_SZ, nv_index, READ40_SPACE_SZ, (BYTE*)dataToRead);
     if (ret == TPM_NVREAD_ERROR)
     {
         PRINT("(%s FAILED) NVRead Fail.\n", __func__ );
@@ -139,13 +146,7 @@ void PerfNVRead40bytes(TSS_HCONTEXT* hContext)
         return;
     }
     
-    if(strcmp(dataToRead, TEST_STR))
-    {
-        PRINT("(%s FAILED) Read Result Error: src_str:%s, dest_str:%s.\n", 
-                __func__, TEST_STR, dataToRead);
-        
-        return;
-    }
+    PRINT("(%s INFO) Read Result: dest_str:%s.\n", __func__, dataToRead);
     
     EndCurrentRun();
     PRINT("(%s SUCCESSFUL) NVRead Perf Succeed! \n", __func__);
