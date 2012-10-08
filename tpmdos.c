@@ -54,6 +54,6 @@ void RunPerfCases(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM)
         //void GNUPLOT_SubmitResult(TPMDOS_LAST_RUN* result);
         
         PerfNVWrite40bytes(hContext, hTPM);
-        PerfNVRead40bytes(hContext);
+        //PerfNVRead40bytes(hContext);
     }
 }
