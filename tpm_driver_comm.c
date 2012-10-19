@@ -4,6 +4,8 @@
 #include <string.h>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #define PAGE_SIZE 4096
 
