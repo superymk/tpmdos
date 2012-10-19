@@ -125,11 +125,10 @@ static int my_open(struct inode *inode, struct file *filp)
 		
 		/* obtain new memory */
     	info->data = (char *)get_zeroed_page(GFP_KERNEL);
+		
+		/* assign this info struct to the file */
 		filp->private_data = info;
 	}
-	//memcpy(info->data, "hello from kernel this is file: ", 32);
-	//memcpy(info->data + 32, filp->f_dentry->d_name.name, strlen(filp->f_dentry->d_name.name));
-	/* assign this info struct to the file */
 	
 	return 0;
 }
@@ -484,7 +483,7 @@ static int tpm_tis_send(struct tpm_chip *chip, u8 *buf, size_t len)
 
 	// [Superymk] Begin 
 	TPM_DRIVER_NVWRITE_TIMER result;
-	unsigned long max_jiffies;
+	unsigned long max_jiffies = 0;
 	u64 start_timer = 0, end_timer = 0;
 	int res = memlocate(buf, 0xbabecafe, len);
 	//printk(KERN_INFO "[TPMDoS Driver] MAGIC_HEADER found:%d, size:%u\n", result, len);
@@ -1051,12 +1050,6 @@ static void __exit cleanup_tis(void)
 	struct tpm_chip *chip;
 	
 	// [imamotts] Begin
-	if(info)
-	{
-		free_page(info->data);
-		kfree(info);
-		info = NULL;
-	}
 	debugfs_remove(file1);
 	// [imamotts] End
 	
