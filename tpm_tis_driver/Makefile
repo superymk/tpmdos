@@ -17,7 +17,7 @@ test:
 	
 install:
 	make -C /lib/modules/$(KVERSION)/build M=$(PWD) modules
-	sudo cp /home/superymk/Desktop/Linux_tpm/tpm_tis.ko /lib/modules/$(KVERSION)/kernel/drivers/char/tpm/tpm_tis.ko
+	sudo cp ./tpm_tis.ko /lib/modules/$(KVERSION)/kernel/drivers/char/tpm/tpm_tis.ko
 
 
 clean:
