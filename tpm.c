@@ -1,5 +1,6 @@
 #include "tpm.h"
 #include "log_msg.h"
+#include "tpm_driver_comm.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -180,6 +181,15 @@ int WriteNVRAM(
     }
     
     EndPerf(WRITE_NVWRITE_PERF);
+    
+    /* Read the NVWrite performance in kernel mode */
+    {
+        TPM_DRIVER_NVWRITE_TIMER result;
+        
+        ReadDriverNVWriteResult(&result);
+        SetPerf(WRITE_KERNEL_PERF, result.timer_result);
+        SetPerf(WRITE_KERNEL_TIMEOUT_JIFFIES, result.max_jiffies);
+    }
     
     return 0;
 }

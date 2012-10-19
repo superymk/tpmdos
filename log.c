@@ -146,6 +146,14 @@ uint64_t GetPerf(int index)
     return g_cur_run.perf_result[index];
 }
 
+// Avoid use this API. It is only used for read timer result from TPM driver
+// and report the result in user app.
+void SetPerf(int index, uint64_t result)
+{
+    g_cur_run.perf_result[index] = result;
+}
+
+
 // Translate the <run_type> into <str>
 void TranslateRunType(int run_type, char* str)
 {
@@ -187,16 +195,6 @@ void ReadMetaFile()
     
     fclose(fp);
 }
-
-//~ static void Log_SubmitResult()
-//~ {
-    //~ LogVerbose("Result: run_type: %d, total_globalrun: %llu, total_localrun: %llu, perf_result: %llu\n",
-            //~ g_cur_run.run_type,
-            //~ GetMetaValue(G_RUN_CNT), 
-            //~ GetMetaValue(GetCurrentRunType()),
-            //~ g_cur_run.last_perf_result
-    //~ );
-//~ }
 
 void LogVerbose(char* fmt,...)
 {

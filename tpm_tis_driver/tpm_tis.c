@@ -29,7 +29,132 @@
 #include <linux/freezer.h>
 #include "tpm.h"
 
-#define TPM_HEADER_SIZE 10
+// [Superymk] Begin
+#include <linux/timer.h>
+// [Superymk] End
+
+/*********************************
+ * Begin modification by imamotts
+ *********************************/
+ 
+#include <linux/slab.h>
+#include <linux/module.h>
+#include <linux/kernel.h>
+#include <linux/init.h>
+#include <linux/fs.h>
+#include <linux/debugfs.h>
+
+#include <linux/mm.h>  /* mmap related stuff */
+#define TPMDOS_TIS_COMM_NAME "tpmdos_tis"
+
+struct dentry  *file1;
+
+struct mmap_info {
+	char *data;	/* the data */
+	int reference;       /* how many times it is mmapped */  	
+};
+
+
+/* keep track of how many times it is mmapped */
+
+void mmap_open(struct vm_area_struct *vma)
+{
+	struct mmap_info *info = (struct mmap_info *)vma->vm_private_data;
+	info->reference++;
+}
+
+void mmap_close(struct vm_area_struct *vma)
+{
+	struct mmap_info *info = (struct mmap_info *)vma->vm_private_data;
+	info->reference--;
+}
+
+/* nopage is called the first time a memory area is accessed which is not in memory,
+ * it does the actual mapping between kernel and user space memory
+ */
+int mmap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+{
+	struct page *page;
+	struct mmap_info *info;
+
+	/* the data is in vma->vm_private_data */
+	info = (struct mmap_info *)vma->vm_private_data;
+
+	/* get the page */
+	page = virt_to_page(info->data);
+	vmf->page = page;
+	
+	/* increment the reference count of this page */
+	get_page(page);
+
+	return 0;
+}
+
+struct vm_operations_struct mmap_vm_ops = {
+	.open =     mmap_open,
+	.close =    mmap_close,
+	.fault =    mmap_fault,
+};
+
+static int my_mmap(struct file *filp, struct vm_area_struct *vma)
+{
+	vma->vm_ops = &mmap_vm_ops;
+	vma->vm_flags |= VM_RESERVED;
+	/* assign the file private data to the vm private data */
+	vma->vm_private_data = filp->private_data;
+	mmap_open(vma);
+	return 0;
+}
+
+static int my_close(struct inode *inode, struct file *filp)
+{
+	struct mmap_info *info = filp->private_data;
+	/* obtain new memory */
+	free_page((unsigned long)info->data);
+    	kfree(info);
+	filp->private_data = NULL;
+	return 0;
+}
+
+static struct mmap_info *info = NULL;
+static int my_open(struct inode *inode, struct file *filp)
+{
+	if(!info)
+	{
+		info = kmalloc(sizeof(struct mmap_info), GFP_KERNEL);
+		
+		/* obtain new memory */
+    	info->data = (char *)get_zeroed_page(GFP_KERNEL);
+		filp->private_data = info;
+	}
+	//memcpy(info->data, "hello from kernel this is file: ", 32);
+	//memcpy(info->data + 32, filp->f_dentry->d_name.name, strlen(filp->f_dentry->d_name.name));
+	/* assign this info struct to the file */
+	
+	return 0;
+}
+
+typedef struct
+{
+	u64 timer_result;
+	unsigned long max_jiffies;
+} TPM_DRIVER_NVWRITE_TIMER, *PTPM_DRIVER_NVWRITE_TIMER;
+
+static void mm_write(PTPM_DRIVER_NVWRITE_TIMER result)
+{
+	memcpy(info->data, result, sizeof(TPM_DRIVER_NVWRITE_TIMER));
+}
+
+static const struct file_operations my_fops = {
+	.open = my_open,
+	.release = my_close,
+	.mmap = my_mmap,
+};
+
+/*********************************
+ * End modification by imamotts
+ *********************************/
+
 
 enum tis_access {
 	TPM_ACCESS_VALID = 0x80,
@@ -78,7 +203,7 @@ enum tis_defaults {
 #define	TPM_RID(l)			(0x0F04 | ((l) << 12))
 
 static LIST_HEAD(tis_chips);
-static DEFINE_SPINLOCK(tis_lock);
+static DEFINE_MUTEX(tis_lock);
 
 #if defined(CONFIG_PNP) && defined(CONFIG_ACPI)
 static int is_itpm(struct pnp_dev *dev)
@@ -193,54 +318,14 @@ static int get_burstcount(struct tpm_chip *chip)
 	return -EBUSY;
 }
 
-static int wait_for_stat(struct tpm_chip *chip, u8 mask, unsigned long timeout,
-			 wait_queue_head_t *queue)
-{
-	unsigned long stop;
-	long rc;
-	u8 status;
-
-	/* check current status */
-	status = tpm_tis_status(chip);
-	if ((status & mask) == mask)
-		return 0;
-
-	stop = jiffies + timeout;
-
-	if (chip->vendor.irq) {
-again:
-		timeout = stop - jiffies;
-		if ((long)timeout <= 0)
-			return -ETIME;
-		rc = wait_event_interruptible_timeout(*queue,
-						      ((tpm_tis_status
-							(chip) & mask) ==
-						       mask), timeout);
-		if (rc > 0)
-			return 0;
-		if (rc == -ERESTARTSYS && freezing(current)) {
-			clear_thread_flag(TIF_SIGPENDING);
-			goto again;
-		}
-	} else {
-		do {
-			msleep(TPM_TIMEOUT);
-			status = tpm_tis_status(chip);
-			if ((status & mask) == mask)
-				return 0;
-		} while (time_before(jiffies, stop));
-	}
-	return -ETIME;
-}
-
 static int recv_data(struct tpm_chip *chip, u8 *buf, size_t count)
 {
 	int size = 0, burstcnt;
 	while (size < count &&
-	       wait_for_stat(chip,
-			     TPM_STS_DATA_AVAIL | TPM_STS_VALID,
-			     chip->vendor.timeout_c,
-			     &chip->vendor.read_queue)
+	       wait_for_tpm_stat(chip,
+				 TPM_STS_DATA_AVAIL | TPM_STS_VALID,
+				 chip->vendor.timeout_c,
+				 &chip->vendor.read_queue)
 	       == 0) {
 		burstcnt = get_burstcount(chip);
 		for (; burstcnt > 0 && size < count; burstcnt--)
@@ -282,8 +367,8 @@ static int tpm_tis_recv(struct tpm_chip *chip, u8 *buf, size_t count)
 		goto out;
 	}
 
-	wait_for_stat(chip, TPM_STS_VALID, chip->vendor.timeout_c,
-		      &chip->vendor.int_queue);
+	wait_for_tpm_stat(chip, TPM_STS_VALID, chip->vendor.timeout_c,
+			  &chip->vendor.int_queue);
 	status = tpm_tis_status(chip);
 	if (status & TPM_STS_DATA_AVAIL) {	/* retry? */
 		dev_err(chip->dev, "Error left over data\n");
@@ -297,26 +382,9 @@ out:
 	return size;
 }
 
-static int itpm;
+static bool itpm;
 module_param(itpm, bool, 0444);
 MODULE_PARM_DESC(itpm, "Force iTPM workarounds (found on some Lenovo laptops)");
-
-// [Superymk] Begin
-static int memlocate(u8* mem, unsigned int target, size_t len)
-{
-	size_t i = 0;
-	for(i = 0; i < len; i++)
-	{
-		unsigned int value = *(unsigned int*)(mem+i);
-		
-		if(value == target)
-			return i;
-	}
-	
-	return 0;
-}
-
-// [Superymk] End
 
 /*
  * If interrupts are used (signaled by an irq set in the vendor structure)
@@ -328,18 +396,13 @@ static int tpm_tis_send_data(struct tpm_chip *chip, u8 *buf, size_t len)
 	int rc, status, burstcnt;
 	size_t count = 0;
 
-	// [Superymk] Begin 
-	int result = memlocate(buf, 0xbabecafe, len);
-	printk(KERN_INFO "[TPMDoS Driver] MAGIC_HEADER found:%d, size:%u\n", result, len);
-	// [Superymk] End
-	
 	if (request_locality(chip, 0) < 0)
 		return -EBUSY;
 
 	status = tpm_tis_status(chip);
 	if ((status & TPM_STS_COMMAND_READY) == 0) {
 		tpm_tis_ready(chip);
-		if (wait_for_stat
+		if (wait_for_tpm_stat
 		    (chip, TPM_STS_COMMAND_READY, chip->vendor.timeout_b,
 		     &chip->vendor.int_queue) < 0) {
 			rc = -ETIME;
@@ -355,8 +418,8 @@ static int tpm_tis_send_data(struct tpm_chip *chip, u8 *buf, size_t len)
 			count++;
 		}
 
-		wait_for_stat(chip, TPM_STS_VALID, chip->vendor.timeout_c,
-			      &chip->vendor.int_queue);
+		wait_for_tpm_stat(chip, TPM_STS_VALID, chip->vendor.timeout_c,
+				  &chip->vendor.int_queue);
 		status = tpm_tis_status(chip);
 		if (!itpm && (status & TPM_STS_DATA_EXPECT) == 0) {
 			rc = -EIO;
@@ -367,8 +430,8 @@ static int tpm_tis_send_data(struct tpm_chip *chip, u8 *buf, size_t len)
 	/* write last byte */
 	iowrite8(buf[count],
 		 chip->vendor.iobase + TPM_DATA_FIFO(chip->vendor.locality));
-	wait_for_stat(chip, TPM_STS_VALID, chip->vendor.timeout_c,
-		      &chip->vendor.int_queue);
+	wait_for_tpm_stat(chip, TPM_STS_VALID, chip->vendor.timeout_c,
+			  &chip->vendor.int_queue);
 	status = tpm_tis_status(chip);
 	if ((status & TPM_STS_DATA_EXPECT) != 0) {
 		rc = -EIO;
@@ -383,6 +446,32 @@ out_err:
 	return rc;
 }
 
+// [Superymk] Begin
+static int memlocate(u8* mem, unsigned int target, size_t len)
+{
+	size_t i = 0;
+	for(i = 0; i < len; i++)
+ 	{
+ 		unsigned int value = *(unsigned int*)(mem+i);
+ 		
+ 		if(value == target)
+ 			return i;
+ 	}
+ 	
+ 	return 0;
+}
+
+static void QueryPerformanceCounter(u64 *performance_count)
+{
+    struct timeval time;
+
+    /* Grab the current time. */
+    do_gettimeofday(&time);
+    *performance_count = time.tv_usec + /* Microseconds. */
+                         time.tv_sec * USEC_PER_SEC; /* Seconds. */
+}
+// [Superymk] End
+
 /*
  * If interrupts are used (signaled by an irq set in the vendor structure)
  * tpm.c can skip polling for the data to be available as the interrupt is
@@ -393,6 +482,16 @@ static int tpm_tis_send(struct tpm_chip *chip, u8 *buf, size_t len)
 	int rc;
 	u32 ordinal;
 
+	// [Superymk] Begin 
+	TPM_DRIVER_NVWRITE_TIMER result;
+	unsigned long max_jiffies;
+	u64 start_timer = 0, end_timer = 0;
+	int res = memlocate(buf, 0xbabecafe, len);
+	//printk(KERN_INFO "[TPMDoS Driver] MAGIC_HEADER found:%d, size:%u\n", result, len);
+	
+	QueryPerformanceCounter(&start_timer);
+	// [Superymk] End
+	
 	rc = tpm_tis_send_data(chip, buf, len);
 	if (rc < 0)
 		return rc;
@@ -403,18 +502,41 @@ static int tpm_tis_send(struct tpm_chip *chip, u8 *buf, size_t len)
 
 	if (chip->vendor.irq) {
 		ordinal = be32_to_cpu(*((__be32 *) (buf + 6)));
-		if (wait_for_stat
+		//[Superymk] Begin
+		max_jiffies = tpm_calc_ordinal_duration(chip, ordinal);
+		//[Superymk] End
+		if (wait_for_tpm_stat
 		    (chip, TPM_STS_DATA_AVAIL | TPM_STS_VALID,
-		     tpm_calc_ordinal_duration(chip, ordinal),
+		     max_jiffies,
 		     &chip->vendor.read_queue) < 0) {
 			rc = -ETIME;
 			goto out_err;
 		}
 	}
+	
+	// [Superymk] Begin
+	QueryPerformanceCounter(&end_timer);
+	result.timer_result = end_timer - start_timer;
+	result.max_jiffies = max_jiffies;
+	
+	if(res)
+		mm_write(&result);
+	// [Superymk] End
+	
 	return len;
 out_err:
 	tpm_tis_ready(chip);
 	release_locality(chip, chip->vendor.locality, 0);
+	
+	// [Superymk] Begin
+	QueryPerformanceCounter(&end_timer);
+	result.timer_result = end_timer - start_timer;
+	result.max_jiffies = max_jiffies;
+	
+	if(res)
+		mm_write(&result);
+	// [Superymk] End
+	
 	return rc;
 }
 
@@ -431,7 +553,12 @@ static int probe_itpm(struct tpm_chip *chip)
 		0x00, 0x00, 0x00, 0xf1
 	};
 	size_t len = sizeof(cmd_getticks);
-	int rem_itpm = itpm;
+	bool rem_itpm = itpm;
+	u16 vendor = ioread16(chip->vendor.iobase + TPM_DID_VID(0));
+
+	/* probe only iTPMS */
+	if (vendor != TPM_VID_INTEL)
+		return 0;
 
 	itpm = 0;
 
@@ -454,9 +581,6 @@ static int probe_itpm(struct tpm_chip *chip)
 out:
 	itpm = rem_itpm;
 	tpm_tis_ready(chip);
-	/* some TPMs need a break here otherwise they will not work
-	 * correctly on the immediately subsequent command */
-	msleep(chip->vendor.timeout_b);
 	release_locality(chip, chip->vendor.locality, 0);
 
 	return rc;
@@ -564,7 +688,7 @@ static irqreturn_t tis_int_handler(int dummy, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static int interrupts = 1;
+static bool interrupts = 1;
 module_param(interrupts, bool, 0444);
 MODULE_PARM_DESC(interrupts, "Enable interrupts");
 
@@ -572,7 +696,7 @@ static int tpm_tis_init(struct device *dev, resource_size_t start,
 			resource_size_t len, unsigned int irq)
 {
 	u32 vendor, intfcaps, intmask;
-	int rc, i, irq_s, irq_e;
+	int rc, i, irq_s, irq_e, probe;
 	struct tpm_chip *chip;
 
 	if (!(chip = tpm_register_hardware(dev, &tpm_tis)))
@@ -584,7 +708,6 @@ static int tpm_tis_init(struct device *dev, resource_size_t start,
 		goto out_err;
 	}
 
-	printk(KERN_INFO "[TPMDoS Driver] Hello world\n");
 	/* Default timeouts */
 	chip->vendor.timeout_a = msecs_to_jiffies(TIS_SHORT_TIMEOUT);
 	chip->vendor.timeout_b = msecs_to_jiffies(TIS_LONG_TIMEOUT);
@@ -603,11 +726,12 @@ static int tpm_tis_init(struct device *dev, resource_size_t start,
 		 vendor >> 16, ioread8(chip->vendor.iobase + TPM_RID(0)));
 
 	if (!itpm) {
-		itpm = probe_itpm(chip);
-		if (itpm < 0) {
+		probe = probe_itpm(chip);
+		if (probe < 0) {
 			rc = -ENODEV;
 			goto out_err;
 		}
+		itpm = (probe == 0) ? 0 : 1;
 	}
 
 	if (itpm)
@@ -640,7 +764,17 @@ static int tpm_tis_init(struct device *dev, resource_size_t start,
 		dev_dbg(dev, "\tData Avail Int Support\n");
 
 	/* get the timeouts before testing for irqs */
-	tpm_get_timeouts(chip);
+	if (tpm_get_timeouts(chip)) {
+		dev_err(dev, "Could not get TPM timeouts and durations\n");
+		rc = -ENODEV;
+		goto out_err;
+	}
+
+	if (tpm_do_selftest(chip)) {
+		dev_err(dev, "TPM self test failed\n");
+		rc = -ENODEV;
+		goto out_err;
+	}
 
 	/* INTERRUPT Setup */
 	init_waitqueue_head(&chip->vendor.read_queue);
@@ -744,11 +878,10 @@ static int tpm_tis_init(struct device *dev, resource_size_t start,
 	}
 
 	INIT_LIST_HEAD(&chip->vendor.list);
-	spin_lock(&tis_lock);
+	mutex_lock(&tis_lock);
 	list_add(&chip->vendor.list, &tis_chips);
-	spin_unlock(&tis_lock);
+	mutex_unlock(&tis_lock);
 
-	tpm_continue_selftest(chip);
 
 	return 0;
 out_err:
@@ -803,7 +936,7 @@ static int __devinit tpm_tis_pnp_init(struct pnp_dev *pnp_dev,
 
 static int tpm_tis_pnp_suspend(struct pnp_dev *dev, pm_message_t msg)
 {
-	return tpm_pm_suspend(&dev->dev, msg);
+	return tpm_pm_suspend(&dev->dev);
 }
 
 static int tpm_tis_pnp_resume(struct pnp_dev *dev)
@@ -816,7 +949,7 @@ static int tpm_tis_pnp_resume(struct pnp_dev *dev)
 
 	ret = tpm_pm_resume(&dev->dev);
 	if (!ret)
-		tpm_continue_selftest(chip);
+		tpm_do_selftest(chip);
 
 	return ret;
 }
@@ -859,37 +992,42 @@ module_param_string(hid, tpm_pnp_tbl[TIS_HID_USR_IDX].id,
 		    sizeof(tpm_pnp_tbl[TIS_HID_USR_IDX].id), 0444);
 MODULE_PARM_DESC(hid, "Set additional specific HID for this driver to probe");
 #endif
-static int tpm_tis_suspend(struct platform_device *dev, pm_message_t msg)
-{
-	return tpm_pm_suspend(&dev->dev, msg);
-}
 
-static int tpm_tis_resume(struct platform_device *dev)
+#ifdef CONFIG_PM_SLEEP
+static int tpm_tis_resume(struct device *dev)
 {
-	struct tpm_chip *chip = dev_get_drvdata(&dev->dev);
+	struct tpm_chip *chip = dev_get_drvdata(dev);
 
 	if (chip->vendor.irq)
 		tpm_tis_reenable_interrupts(chip);
 
-	return tpm_pm_resume(&dev->dev);
+	return tpm_pm_resume(dev);
 }
+#endif
+
+static SIMPLE_DEV_PM_OPS(tpm_tis_pm, tpm_pm_suspend, tpm_tis_resume);
+
 static struct platform_driver tis_drv = {
 	.driver = {
 		.name = "tpm_tis",
 		.owner		= THIS_MODULE,
+		.pm		= &tpm_tis_pm,
 	},
-	.suspend = tpm_tis_suspend,
-	.resume = tpm_tis_resume,
 };
 
 static struct platform_device *pdev;
 
-static int force;
+static bool force;
 module_param(force, bool, 0444);
 MODULE_PARM_DESC(force, "Force device probe rather than using ACPI entry");
 static int __init init_tis(void)
 {
 	int rc;
+	
+	// [imamotts] Begin
+	file1 = debugfs_create_file(TPMDOS_TIS_COMM_NAME, 0644, NULL, NULL, &my_fops);
+	// [imamotts] End
+	
 #ifdef CONFIG_PNP
 	if (!force)
 		return pnp_register_driver(&tis_pnp_driver);
@@ -911,7 +1049,18 @@ static void __exit cleanup_tis(void)
 {
 	struct tpm_vendor_specific *i, *j;
 	struct tpm_chip *chip;
-	spin_lock(&tis_lock);
+	
+	// [imamotts] Begin
+	if(info)
+	{
+		free_page(info->data);
+		kfree(info);
+		info = NULL;
+	}
+	debugfs_remove(file1);
+	// [imamotts] End
+	
+	mutex_lock(&tis_lock);
 	list_for_each_entry_safe(i, j, &tis_chips, list) {
 		chip = to_tpm_chip(i);
 		tpm_remove_hardware(chip->dev);
@@ -927,7 +1076,7 @@ static void __exit cleanup_tis(void)
 		iounmap(i->iobase);
 		list_del(&i->list);
 	}
-	spin_unlock(&tis_lock);
+	mutex_unlock(&tis_lock);
 #ifdef CONFIG_PNP
 	if (!force) {
 		pnp_unregister_driver(&tis_pnp_driver);

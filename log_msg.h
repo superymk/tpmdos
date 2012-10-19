@@ -15,6 +15,8 @@
 #define WRITE_NVWRITE_PERF              0
 #define WRITE_ATTRIB_PERF               1
 #define WRITE_POLICY_PERF               2
+#define WRITE_KERNEL_PERF               3
+#define WRITE_KERNEL_TIMEOUT_JIFFIES    4
 
 #define READ_NVREAD_PERF                0
 #define READ_ATTRIB_PERF                1

@@ -88,6 +88,9 @@ extern void BeginPerf(int index);
 extern void EndPerf(int index);
 // Retrieve the result at perf slot <index>
 extern uint64_t GetPerf(int index);
+// Avoid use this API. It is only used for read timer result from TPM driver
+// and report the result in user app.
+extern void SetPerf(int index, uint64_t result);
 
 
 // Read metafile if exist, otherwise all are 0. 

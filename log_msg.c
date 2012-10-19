@@ -46,13 +46,16 @@ void FormatMsg(int log_type, char* msg)
                 uint64_t    total_localrun = GetMetaValue(GetCurrentRunType());
                 
                 TranslateRunType(GetCurrentRunType(), type_str);
-                sprintf(msg, "Result: run_type: %s, total_test: %llu, total_localrun: %llu, WRITE_NVWRITE_PERF: %llu, WRITE_ATTRIB_PERF: %llu, WRITE_POLICY_PERF: %llu\n",
+                sprintf(msg, "Result: run_type: %s, total_test: %llu, total_localrun: %llu, WRITE_NVWRITE_PERF: %llu, \
+                        WRITE_ATTRIB_PERF: %llu, WRITE_POLICY_PERF: %llu, WRITE_KERNEL_PERF: %llu, WRITE_KERNEL_TIMEOUT_JIFFIES: %llu\n",
                     type_str,
                     (long long unsigned int)test_counter, 
                     (long long unsigned int)total_localrun,
                     (long long unsigned int)GetPerf(WRITE_NVWRITE_PERF),
                     (long long unsigned int)GetPerf(WRITE_ATTRIB_PERF),
-                    (long long unsigned int)GetPerf(WRITE_POLICY_PERF)
+                    (long long unsigned int)GetPerf(WRITE_POLICY_PERF),
+                    (long long unsigned int)GetPerf(WRITE_KERNEL_PERF),
+                    (long long unsigned int)GetPerf(WRITE_KERNEL_TIMEOUT_JIFFIES)
                 );
             }
             else if(log_type == LOG_GNUPLOT)
@@ -62,13 +65,15 @@ void FormatMsg(int log_type, char* msg)
                 uint64_t    total_localrun = GetMetaValue(GetCurrentRunType());
                 // For the L_TEST, the output data format:
                 // #   (Date/Time)         (Total Run)    (Run for this type)      (WRITE_NVWRITE_PERF (us))
-                sprintf(msg, "\t%s\t%llu\t%llu\t%llu\t%llu\t%llu\n", 
+                sprintf(msg, "\t%s\t%llu\t%llu\t%llu\t%llu\t%llu\t%llu\t%llu\n", 
                         timestamp, 
                         (long long unsigned int)test_counter, 
                         (long long unsigned int)total_localrun,
                         (long long unsigned int)GetPerf(WRITE_NVWRITE_PERF),
                         (long long unsigned int)GetPerf(WRITE_ATTRIB_PERF),
-                        (long long unsigned int)GetPerf(WRITE_POLICY_PERF)
+                        (long long unsigned int)GetPerf(WRITE_POLICY_PERF),
+                        (long long unsigned int)GetPerf(WRITE_KERNEL_PERF),
+                        (long long unsigned int)GetPerf(WRITE_KERNEL_TIMEOUT_JIFFIES)
                 );
             }
             break;

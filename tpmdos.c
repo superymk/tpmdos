@@ -10,6 +10,7 @@
 #include "tpm.h"
 #include "cpu.h"
 #include "perfcases.h"
+#include "tpm_driver_comm.h"
 
 // Main entry of test cases.
 static void RunPerfCases(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM);
@@ -35,12 +36,14 @@ int main(int argc, char** argv)
     
     // Init
     InitTPM(&hContext, &hTPM, &hSRK, &hSRKPolicy);
+    CreateComm();
     ReadMetaFile();
     
     // Run Perf Cases.
     RunPerfCases(&hContext, &hTPM);
 
     // Finalize
+    CloseComm();
     FinalizeTPM(&hContext, &hTPM, &hSRK, &hSRKPolicy);
     
     RestoreAffinity();
