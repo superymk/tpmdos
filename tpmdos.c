@@ -3,6 +3,8 @@
 #include <string.h>
 #include <sched.h>
 #include <tss/tspi.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 
 #include "log.h"
 #include "tpm.h"
@@ -28,6 +30,8 @@ int main(int argc, char** argv)
         PRINT("SetAffinityCpu0 Error Return.\n");
         return -1;
     }
+    
+    setpriority(PRIO_PROCESS, 0, -20);
     
     // Init
     InitTPM(&hContext, &hTPM, &hSRK, &hSRKPolicy);

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-f=`dirname $0`"/tpm-data"
+f=`dirname $0`"/tpm-data2"
 if [ ! -d $f ]; then
-    git clone https://tpmdos:cylabcmu@code.google.com/p/tpm-data/ >/dev/null
+    git clone https://tpmdos:cylabcmu@code.google.com/p/tpm-data2/ >/dev/null
     while [ ! -d $f ] 
     do
         sleep 2s
@@ -36,7 +36,7 @@ do
     msg="Experiment Result on: "`date` 
     echo $msg
     git commit -a -m "$msg"
-    git push --repo https://tpmdos:gR3KV4pE2Sd9@code.google.com/p/tpm-data/ 
-    sleep 10m
+    git push --repo https://tpmdos:gR3KV4pE2Sd9@code.google.com/p/tpm-data2/ 
+    sleep 1d
     cd ..
 done
