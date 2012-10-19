@@ -17,6 +17,7 @@
 
 #define OWNER_PASSWD  "cylab"
 #define OWNER_PASSWD_LENGTH  (strlen(OWNER_PASSWD))
+#define WRITE_MAGIC_HEADER  0xBABECAFE
 
 #define TPMUTIL_GETCAP_ERROR    -1
 

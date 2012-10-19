@@ -92,6 +92,7 @@ int WriteNVRAM(
     TSS_HPOLICY     hNewPolicy;
     //char dataToStore[19]="This is some dat1.";
     
+    *(unsigned int*)data = WRITE_MAGIC_HEADER;
     BeginPerf(WRITE_ATTRIB_PERF);
     
     /* Create a NVRAM object */
