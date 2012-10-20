@@ -12,16 +12,24 @@
 #include "perfcases.h"
 #include "tpm_driver_comm.h"
 
+static TSS_HCONTEXT    hContext = 0;
+static TSS_HTPM        hTPM = 0;
+static TSS_HKEY        hSRK = 0;
+static TSS_HPOLICY     hSRKPolicy = 0;
+    
 // Main entry of test cases.
 static void RunPerfCases(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM);
 
+void FinalizeTPMDOS(void)
+{
+    CloseComm();
+    FinalizeTPM(&hContext, &hTPM, &hSRK, &hSRKPolicy);
+    
+    RestoreAffinity();
+}
+
 int main(int argc, char** argv)
 {
-    TSS_HCONTEXT    hContext = 0;
-    TSS_HTPM        hTPM = 0;
-    TSS_HKEY        hSRK = 0;
-    TSS_HPOLICY     hSRKPolicy = 0;
-    
     UINT32          ret = 0;
     
     // Set CPU Affinity
@@ -43,10 +51,7 @@ int main(int argc, char** argv)
     RunPerfCases(&hContext, &hTPM);
 
     // Finalize
-    CloseComm();
-    FinalizeTPM(&hContext, &hTPM, &hSRK, &hSRKPolicy);
-    
-    RestoreAffinity();
+    FinalizeTPMDOS();
     
     return 0;
 }

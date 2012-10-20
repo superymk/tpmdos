@@ -3,6 +3,7 @@
 #include "timer.h"
 #include "log_gnuplot.h"
 #include "log_msg.h"
+#include "tpmdos.h"
 
 #include <string.h>
 #include <inttypes.h>
@@ -220,5 +221,6 @@ void LogVerbose(char* fmt,...)
 void FATAL_ERROR()
 {
     PRINT("FATAL ERROR OCCURS!\n");
+    FinalizeTPMDOS();
     exit(-1);
 }
