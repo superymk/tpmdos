@@ -42,6 +42,7 @@ void GNUPLOT_SubmitResult(char* result)
             break;
         
         case WRITE_40BYTES:
+        case WRITE_705BYTES:
             GenerateFilePath(log_fn, GNUPLOT_WRITE_40BYTES_FILEPATH);
             GenerateHeader(
                 log_fn, 
@@ -50,6 +51,7 @@ void GNUPLOT_SubmitResult(char* result)
             break;
         
         case READ_40BYTES:
+        case READ_705BYTES:
             GenerateFilePath(log_fn, GNUPLOT_READ_40BYTES_FILEPATH);
             GenerateHeader(
                 log_fn, 
