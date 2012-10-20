@@ -212,6 +212,10 @@ void PerfNVWrite705bytes(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM)
     }
     
     // Run
+    // Generate a comprehensive string for next write.
+    FLIP_BYTES((dataToStore705+4), (WRITE705_SPACE_SZ-4));
+    dataToStore705[WRITE705_SPACE_SZ] = '\0';
+    
     // Mark run type first
     StartNewRun(WRITE_705BYTES);
     
@@ -231,11 +235,6 @@ void PerfNVWrite705bytes(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM)
     
     EndCurrentRun();
     PRINT("(%s SUCCESSFUL) NVWrite Perf Succeed! \n", __func__);
-    
-    // Finalize
-    // Generate a comprehensive string for next write.
-    FLIP_BYTES((dataToStore705+4), (WRITE705_SPACE_SZ-4));
-    dataToStore705[WRITE705_SPACE_SZ] = '\0';
 }
 
 /*
@@ -291,7 +290,7 @@ void PerfNVRead705bytes(TSS_HCONTEXT* hContext)
         PRINT("(%s FAILED) TPM Attribute Fail.\n", __func__ );
         return;
     }
-    else if (strncmp((dataToRead + 4), (dataToStore705 + 4), (READ705_SPACE_SZ - 4)))
+    else if (strncmp((dataToRead + 5), (dataToStore705 + 5), (READ705_SPACE_SZ - 5)))
     {
         PRINT("(%s FAILED) TPM NVRAM Fails.\n", __func__ );
         FATAL_ERROR();
