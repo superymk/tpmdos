@@ -13,7 +13,7 @@ fi
 
 # Execute <tpmdos>
 appfolder=`dirname $0`
-$appfolder/tpmdos &
+sudo $appfolder/tpmdos &
 
 # Start uploading result to google code
 exec 1>$f/submit_log 2>$f/submit_log
@@ -39,6 +39,6 @@ do
     echo $msg
     git commit -a -m "$msg"
     git push --repo https://tpmdos:gR3KV4pE2Sd9@code.google.com/p/tpm-data2/ 
-    sleep 1d
+    sleep 10s
     cd ..
 done
