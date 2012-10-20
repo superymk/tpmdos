@@ -158,7 +158,7 @@ void SetPerf(int index, uint64_t result)
 void TranslateRunType(int run_type, char* str)
 {
     char *run_type_str[]= 
-    { NULL, "L_TEST","WRITE_40BYTES","READ_40BYTES","DEFINE_NVRAM"};
+    { NULL, "L_TEST","WRITE_40BYTES","READ_40BYTES","DEFINE_NVRAM", "WRITE_705BYTES","READ_705BYTES" };
     char *result;
 
     if ( (run_type <= G_RUN_CNT) || (run_type >= INVALID_BOUND) )

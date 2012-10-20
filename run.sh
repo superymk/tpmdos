@@ -25,8 +25,10 @@ git add tpm-version-`hostname`
 git add gnuplot-defineNV-`hostname`
 git add gnuplot-read40-`hostname`
 git add gnuplot-write40-`hostname`
+git add gnuplot-read705-`hostname`
+git add gnuplot-write705-`hostname`
 git add metadata-`hostname`
-git add log-`hostname`
+#git add log-`hostname`
 
 cd ..
 

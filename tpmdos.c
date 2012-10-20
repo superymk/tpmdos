@@ -56,11 +56,10 @@ void RunPerfCases(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM)
 {
     while(1)
     {
-        //IncGlobalMeta(L_TEST);
-        //extern void Log_SubmitResult(TPMDOS_LAST_RUN* result);
-        //void GNUPLOT_SubmitResult(TPMDOS_LAST_RUN* result);
-        
-        PerfNVWrite40bytes(hContext, hTPM);
+        //PerfNVWrite40bytes(hContext, hTPM);
         //PerfNVRead40bytes(hContext);
+        
+        PerfNVWrite705bytes(hContext, hTPM);
+        PerfNVRead705bytes(hContext);
     }
 }

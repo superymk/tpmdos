@@ -30,7 +30,9 @@
 #define WRITE_40BYTES   2
 #define READ_40BYTES    3
 #define DEFINE_NVRAM    4
-#define INVALID_BOUND   5  // Increase this bound to include new items. 
+#define WRITE_705BYTES   5
+#define READ_705BYTES    6
+#define INVALID_BOUND   7  // Increase this bound to include new items. 
 
 // Record the latest finished run result.
 typedef struct

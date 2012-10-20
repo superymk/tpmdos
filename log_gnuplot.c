@@ -45,7 +45,7 @@ void GNUPLOT_SubmitResult(char* result)
             GenerateFilePath(log_fn, GNUPLOT_WRITE_40BYTES_FILEPATH);
             GenerateHeader(
                 log_fn, 
-                "(WRITE_NVWRITE_PERF (us))\t(WRITE_ATTRIB_PERF (us))\t(WRITE_POLICY_PERF (us))"
+                "(WRITE_NVWRITE_PERF (us))\t(WRITE_ATTRIB_PERF (us))\t(WRITE_POLICY_PERF (us))\t(WRITE_KERNEL_PERF (us))\t(WRITE_KERNEL_TIMEOUT_JIFFIES (us))"
             );
             break;
         

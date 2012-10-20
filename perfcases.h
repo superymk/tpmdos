@@ -56,4 +56,58 @@ extern void PerfNVWrite40bytes(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM);
  */
 extern void PerfNVRead40bytes(TSS_HCONTEXT* hContext);
 
+/*
+ * NAME
+ *	PerfNVWrite
+ *
+ * DESCRIPTION
+ *	This experiment measures the NVRAM Write performance by 
+ * writing 705 bytes.
+ *
+ * ALGORITHM
+ *	Setup:
+ *		Tspi_Context_Create
+ *		Tspi_Context_Connect
+ *		Tspi_Context_CreateObject(NV object)
+ *		Setsecret to TPM policy with the correct owner passwd
+ *		Tspi_SetAttribUint32(Index, permission, datasize)
+ *		(The Index is 0x00011101)
+ *		(The Permission is OWNERWRITE)
+ *		(The datasize is 705)
+ *		Tspi_NV_ReleaseSpace
+ *
+ * Run:	
+ *		Evaluation fails on Attibute setting failures and 
+ *      NVRAM write failure.
+ *
+ */
+extern void PerfNVWrite705bytes(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM);
+
+/*
+ * NAME
+ *	PerfNVRead
+ *
+ * DESCRIPTION
+ *	This experiment measures the NVRAM Write performance by 
+ * reading 705 bytes.
+ *
+ * ALGORITHM
+ *	Setup:
+ *		Tspi_Context_Create
+ *		Tspi_Context_Connect
+ *		Tspi_Context_CreateObject(NV object)
+ *		Setsecret to TPM policy with the correct owner passwd
+ *		Tspi_SetAttribUint32(Index, permission, datasize)
+ *		(The Index is 0x00011101)
+ *		(The Permission is OWNERWRITE)
+ *		(The datasize is 705)
+ *		Tspi_NV_ReleaseSpace
+ *
+ * Run:	
+ *		Evaluation fails on Attibute setting failures, NVRAM
+ *      read failure and string comparison failure.
+ *
+ */
+extern void PerfNVRead705bytes(TSS_HCONTEXT* hContext);
+
 #endif
