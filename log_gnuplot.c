@@ -42,7 +42,6 @@ void GNUPLOT_SubmitResult(char* result)
             break;
         
         case WRITE_40BYTES:
-        case WRITE_705BYTES:
             GenerateFilePath(log_fn, GNUPLOT_WRITE_40BYTES_FILEPATH);
             GenerateHeader(
                 log_fn, 
@@ -50,9 +49,24 @@ void GNUPLOT_SubmitResult(char* result)
             );
             break;
         
+        case WRITE_705BYTES:
+            GenerateFilePath(log_fn, GNUPLOT_WRITE_705BYTES_FILEPATH);
+            GenerateHeader(
+                log_fn, 
+                "(WRITE_NVWRITE_PERF (us))\t(WRITE_ATTRIB_PERF (us))\t(WRITE_POLICY_PERF (us))\t(WRITE_KERNEL_PERF (us))\t(WRITE_KERNEL_TIMEOUT_JIFFIES (us))"
+            );
+            break;
+        
         case READ_40BYTES:
-        case READ_705BYTES:
             GenerateFilePath(log_fn, GNUPLOT_READ_40BYTES_FILEPATH);
+            GenerateHeader(
+                log_fn, 
+                "(READ_NVREAD_PERF (us))\t(READ_ATTRIB_PERF (us))"
+            );
+            break;
+        
+        case READ_705BYTES:
+            GenerateFilePath(log_fn, GNUPLOT_READ_705BYTES_FILEPATH);
             GenerateHeader(
                 log_fn, 
                 "(READ_NVREAD_PERF (us))\t(READ_ATTRIB_PERF (us))"
