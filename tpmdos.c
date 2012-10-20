@@ -5,6 +5,8 @@
 #include <tss/tspi.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <signal.h>
+#include <unistd.h>
 
 #include "log.h"
 #include "tpm.h"
@@ -28,6 +30,15 @@ void FinalizeTPMDOS(void)
     RestoreAffinity();
 }
 
+void sig_handler(int signo)
+{
+    if (signo == SIGINT)
+    {
+        PRINT("Received SIGINT\n");
+        FinalizeTPMDOS();
+    }
+}
+
 int main(int argc, char** argv)
 {
     UINT32          ret = 0;
@@ -43,6 +54,9 @@ int main(int argc, char** argv)
     setpriority(PRIO_PROCESS, 0, -20);
     
     // Init
+    if (signal(SIGINT, sig_handler) == SIG_ERR)
+        PRINT("Can't catch SIGINT\n");
+    
     InitTPM(&hContext, &hTPM, &hSRK, &hSRKPolicy);
     CreateComm();
     ReadMetaFile();
