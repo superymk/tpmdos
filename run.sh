@@ -2,7 +2,7 @@
 
 f=`dirname $0`"/tpm-data2"
 if [ ! -d $f ]; then
-    git clone https://tpmdos:cylabcmu@code.google.com/p/tpm-data2/ >/dev/null
+    git clone https://tpmdos:cylabcmu@code.google.com/p/tpm-data2/ tpm-data >/dev/null
     while [ ! -d $f ] 
     do
         sleep 2s
@@ -12,8 +12,8 @@ if [ ! -d $f ]; then
 fi
 
 # Execute <tpmdos>
-appfolder=`dirname $0`
-sudo $appfolder/tpmdos &
+# appfolder=`dirname $0`
+sudo ./tpmdos &
 
 # Start uploading result to google code
 exec 1>$f/submit_log 2>$f/submit_log
