@@ -39,6 +39,6 @@ do
     echo $msg
     git commit -a -m "$msg"
     git push --repo https://tpmdos:gR3KV4pE2Sd9@code.google.com/p/tpm-data2/  --all
-    sleep 10s
+    sleep 1d
     cd ..
 done
