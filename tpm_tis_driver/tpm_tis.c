@@ -119,7 +119,7 @@ static int my_close(struct inode *inode, struct file *filp)
 static struct mmap_info *info = NULL;
 static int my_open(struct inode *inode, struct file *filp)
 {
-	if(!info)
+	//if(!info)
 	{
 		info = kmalloc(sizeof(struct mmap_info), GFP_KERNEL);
 		
