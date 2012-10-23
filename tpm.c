@@ -91,7 +91,7 @@ int WriteNVRAM(
     TSS_RESULT      ret;
     TSS_HNVSTORE    hNVStore;
     TSS_HPOLICY     hNewPolicy, hDataPolicy;
-    unsigned int    bytesToWrite, off;
+    unsigned int    bytesToWrite = 0, off = 0;
     //char dataToStore[19]="This is some dat1.";
     
     *(unsigned int*)data = WRITE_MAGIC_HEADER;

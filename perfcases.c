@@ -510,7 +510,7 @@ void PerfNVReadAllIFX1212(TSS_HCONTEXT* hContext)
         memset(dataToRead1704, 0, READ705_SPACE_SZ);
         
         // Run
-        ret = ReadNVRAM(hContext, READ1704_SPACE_SZ, 0x1000f000, READ1704_SPACE_SZ, FALSE, (BYTE*)dataToRead1704);
+        ret = ReadNVRAM(hContext, READ1704_SPACE_SZ, 0x1000f000, READ1704_SPACE_SZ, TRUE, (BYTE*)dataToRead1704);
         if (ret == TPM_NVREAD_ERROR)
         {
             PRINT("(%s FAILED) NVRead Fail.\n", __func__ );
