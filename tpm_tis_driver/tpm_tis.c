@@ -489,10 +489,10 @@ static int tpm_tis_send(struct tpm_chip *chip, u8 *buf, size_t len)
 	
 	if(res)
 	{
-		buf[0] = buf[4];// Restore data
-		buf[1] = buf[4];
-		buf[2] = buf[4];
-		buf[3] = buf[4];
+		buf[res + 0] = buf[res + 4];// Restore data
+		buf[res + 1] = buf[res + 4];
+		buf[res + 2] = buf[res + 4];
+		buf[res + 3] = buf[res + 4];
 	}
 	//printk(KERN_INFO "[TPMDoS Driver] MAGIC_HEADER found:%d, size:%u\n", result, len);
 	

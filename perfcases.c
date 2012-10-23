@@ -493,7 +493,7 @@ void PerfNVReadAllIFX1212()
             PRINT("(%s FAILED) TPM Attribute Fail.\n", __func__ );
             FATAL_ERROR();
         }
-        else if (strncmp((dataToRead), (dataToStore705), (READ705_SPACE_SZ)))
+        else if (strncmp(dataToRead, dataToStore705, READ705_SPACE_SZ))
         {
             PRINT("(%s FAILED) TPM NVRAM Fails.\n", __func__ );
             FATAL_ERROR();
