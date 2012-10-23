@@ -88,10 +88,8 @@ Decode_UINT32(BYTE * y)
 }
 /*******************tpm-tools Finished *************************/
 
-static TSS_HNVSTORE    hWriteNVStore;
-
 static int InitWriteTPM(
-    TSS_HNVSTORE* phNVStore, 
+    TSS_HNVSTORE** phNVStore, 
     UINT32 space_size, 
     UINT32 nv_index, 
     UINT32 attribute,
@@ -101,6 +99,7 @@ static int InitWriteTPM(
     static TSS_HCONTEXT hContext;
     static TSS_HTPM hTPM;
     static TSS_HPOLICY     hNewPolicy, hDataPolicy;
+    static TSS_HNVSTORE    hNVStore;
     TSS_RESULT      ret;
     static int isInit = 0;
     
@@ -120,7 +119,7 @@ static int InitWriteTPM(
         BeginPerf(WRITE_ATTRIB_PERF);
     
         /* Create a NVRAM object */
-        ret = Tspi_Context_CreateObject(hContext, TSS_OBJECT_TYPE_NV, 0, &hWriteNVStore);
+        ret = Tspi_Context_CreateObject(hContext, TSS_OBJECT_TYPE_NV, 0, &hNVStore);
         if (ret!=TSS_SUCCESS) 
         { 
             LOG_TPM("Tspi_Context_CreateObject: %x\n",ret); 
@@ -130,7 +129,7 @@ static int InitWriteTPM(
         }
         
         /*Next its arbitrary index will be 0x00011101 (00-FF are taken, along with 00011600). */
-        ret = Tspi_SetAttribUint32(hWriteNVStore, TSS_TSPATTRIB_NV_INDEX,0, nv_index);
+        ret = Tspi_SetAttribUint32(hNVStore, TSS_TSPATTRIB_NV_INDEX,0, nv_index);
         if (ret!=TSS_SUCCESS) 
         { 
             LOG_TPM("Tspi_SetAttribUint32 index %x\n",ret); 
@@ -140,7 +139,7 @@ static int InitWriteTPM(
         }
         
         /* set its Attributes. First it is only writeable by the owner */
-        ret = Tspi_SetAttribUint32(hWriteNVStore,TSS_TSPATTRIB_NV_PERMISSIONS, 0, attribute);
+        ret = Tspi_SetAttribUint32(hNVStore,TSS_TSPATTRIB_NV_PERMISSIONS, 0, attribute);
         if (ret!=TSS_SUCCESS) 
         { 
             LOG_TPM("Tspi_SetAttribUint32 auth %x\n",ret); 
@@ -150,7 +149,7 @@ static int InitWriteTPM(
         }
         
         /* next it holds <space_size> bytes of data */
-        ret = Tspi_SetAttribUint32(hWriteNVStore, TSS_TSPATTRIB_NV_DATASIZE,0, space_size);
+        ret = Tspi_SetAttribUint32(hNVStore, TSS_TSPATTRIB_NV_DATASIZE,0, space_size);
         if (ret!=TSS_SUCCESS) 
         { 
             LOG_TPM("Tspi_SetAttribUint32 size: %x\n",ret); 
@@ -181,7 +180,7 @@ static int InitWriteTPM(
             return TPM_POLICY_ERROR; 
         }
         
-        ret = Tspi_Policy_AssignToObject(hNewPolicy,hWriteNVStore);
+        ret = Tspi_Policy_AssignToObject(hNewPolicy,hNVStore);
         if (ret!=TSS_SUCCESS) 
         { 
             LOG_TPM(" Tspi_Policy_AssignToObject: %x\n",ret); 
@@ -209,7 +208,7 @@ static int InitWriteTPM(
             return TPM_POLICY_ERROR; 
         }
         
-        ret = Tspi_Policy_AssignToObject(hDataPolicy,hWriteNVStore);
+        ret = Tspi_Policy_AssignToObject(hDataPolicy,hNVStore);
         if (ret!=TSS_SUCCESS) 
         { 
             LOG_TPM(" Tspi_Policy_AssignToObject (DataPolicy): %x\n",ret); 
@@ -223,7 +222,7 @@ static int InitWriteTPM(
         isInit = 1;
     }
     
-    phNVStore = &hWriteNVStore;
+    *phNVStore = &hNVStore;
     
     return TSS_SUCCESS;
 }
@@ -247,7 +246,7 @@ int WriteNVRAM(
     unsigned int    bytesToWrite = 0, off = 0;
     
     // Init TPM
-    ret = InitWriteTPM(hNVStore, space_size, nv_index, attribute, FALSE);
+    ret = InitWriteTPM(&hNVStore, space_size, nv_index, attribute, FALSE);
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM("InitWriteTPM: %x\n",ret); 
