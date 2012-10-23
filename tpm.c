@@ -248,12 +248,22 @@ int ReadNVRAM(
 {
     TSS_HNVSTORE    hNVStore;
     TSS_HTPM        hTPM;
-    TSS_HPOLICY     hNewPolicy, hDataPolicy;
+    TSS_HPOLICY     hTPMPolicy, hDataPolicy;
     TSS_RESULT      ret;
     BYTE*           rdata = 0;
     
     BeginPerf(READ_ATTRIB_PERF);
     
+    /* Get TPM object */
+    ret = Tspi_Context_GetTpmObject(*hContext, &hTPM);
+    if (ret!=TSS_SUCCESS) 
+    { 
+        LOG_TPM("Tspi_Context_GetTpmObject: %x\n",ret); 
+            
+        EndPerf(READ_ATTRIB_PERF);
+        return TPM_POLICY_ERROR; 
+    }
+        
     /* Create a NVRAM object */
     ret = Tspi_Context_CreateObject(*hContext, TSS_OBJECT_TYPE_NV, 0, &hNVStore);
     if (ret!=TSS_SUCCESS) 
@@ -285,7 +295,8 @@ int ReadNVRAM(
             EndPerf(READ_ATTRIB_PERF);
             return TPM_ATTIBUTE_ERROR; 
         }
-        
+    
+    }
         /* next it holds <space_size> bytes of data */
         ret = Tspi_SetAttribUint32(hNVStore, TSS_TSPATTRIB_NV_DATASIZE, 0, space_size);
         if (ret!=TSS_SUCCESS) 
@@ -295,18 +306,7 @@ int ReadNVRAM(
             EndPerf(READ_ATTRIB_PERF);
             return TPM_ATTIBUTE_ERROR; 
         }
-    }
-    else
-    {
-        ret = Tspi_Context_GetTpmObject(*hContext, &hTPM);
-        if (ret!=TSS_SUCCESS) 
-        { 
-            LOG_TPM("Tspi_Context_GetTpmObject: %x\n",ret); 
-            
-            EndPerf(READ_POLICY_PERF);
-            return TPM_POLICY_ERROR; 
-        }
-    }
+    
     
     EndPerf(READ_ATTRIB_PERF);
     
@@ -315,7 +315,7 @@ int ReadNVRAM(
         BeginPerf(READ_POLICY_PERF);
         
         /* Set Policy for the NVRAM object using the Owner Auth */
-        ret = Tspi_GetPolicyObject(hTPM, TSS_POLICY_USAGE, &hNewPolicy);
+        ret = Tspi_GetPolicyObject(hTPM, TSS_POLICY_USAGE, &hTPMPolicy);
         if (ret!=TSS_SUCCESS) 
         { 
             LOG_TPM("Tspi_GetPolicyObject: %x\n",ret); 
@@ -324,7 +324,7 @@ int ReadNVRAM(
             return TPM_POLICY_ERROR; 
         }
         
-        ret = Tspi_Policy_SetSecret(hNewPolicy, TSS_SECRET_MODE_PLAIN, OWNER_PASSWD_LENGTH, (BYTE*)OWNER_PASSWD);
+        ret = Tspi_Policy_SetSecret(hTPMPolicy, TSS_SECRET_MODE_PLAIN, OWNER_PASSWD_LENGTH, (BYTE*)OWNER_PASSWD);
         if (ret!=TSS_SUCCESS) 
         { 
             LOG_TPM("Tspi_Policy_SetSecret: %x\n",ret); 
@@ -339,7 +339,7 @@ int ReadNVRAM(
         { 
             LOG_TPM("Tspi_Context_CreateObject (DataPolicy): %x\n",ret); 
             
-            EndPerf(WRITE_POLICY_PERF);
+            EndPerf(READ_POLICY_PERF);
             return TPM_POLICY_ERROR; 
         }
         
@@ -348,7 +348,7 @@ int ReadNVRAM(
         { 
             LOG_TPM("Tspi_Policy_SetSecret (DataPolicy): %x\n",ret); 
             
-            EndPerf(WRITE_POLICY_PERF);
+            EndPerf(READ_POLICY_PERF);
             return TPM_POLICY_ERROR; 
         }
         
@@ -357,7 +357,7 @@ int ReadNVRAM(
         { 
             LOG_TPM(" Tspi_Policy_AssignToObject (DataPolicy): %x\n",ret); 
             
-            EndPerf(WRITE_POLICY_PERF);
+            EndPerf(READ_POLICY_PERF);
             return TPM_POLICY_ERROR; 
         }
 
