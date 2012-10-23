@@ -76,12 +76,12 @@ void RunPerfCases()
 {
     while(1)
     {
-        //PerfNVWrite40bytes();
-        //PerfNVRead40bytes();
+        PerfNVWrite40bytes();
+        PerfNVRead40bytes();
         
         //PerfNVWrite705bytes();
         //PerfNVRead705bytes();
-        PerfNVWriteAllIFX1212();
-        PerfNVReadAllIFX1212();
+        //PerfNVWriteAllIFX1212();
+        //PerfNVReadAllIFX1212();
     }
 }

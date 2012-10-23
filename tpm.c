@@ -715,10 +715,15 @@ int IsNVIndexDefined(UINT32 nv_index)
 {
     UINT32 i, ulResultLen;
     TSS_HTPM hTPM;
-    TSS_HCONTEXT hContext;
+    static TSS_HCONTEXT hContext;
+    static int isInit = 0; 
 	BYTE *pResult = NULL;
     
-    InitTPM(&hContext, &hTPM, NULL, NULL);
+    if(!isInit)
+    {
+        InitTPM(&hContext, &hTPM, NULL, NULL);
+        isInit = 1;
+    }
     
     if (getCapability(hTPM, TSS_TPMCAP_NV_LIST, 0, NULL,
 			  &ulResultLen, &pResult) != TSS_SUCCESS) {
@@ -736,6 +741,6 @@ int IsNVIndexDefined(UINT32 nv_index)
         }
 	}
     
-    FinalizeTPM(&hContext, &hTPM, NULL, NULL);
+    //FinalizeTPM(&hContext, &hTPM, NULL, NULL);
     return 0;
 }
