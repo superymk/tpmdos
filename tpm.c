@@ -328,15 +328,6 @@ int ReadNVRAM(
             return TPM_POLICY_ERROR; 
         }
         
-        ret = Tspi_Policy_AssignToObject(hNewPolicy,hNVStore);
-        if (ret!=TSS_SUCCESS) 
-        { 
-            LOG_TPM(" Tspi_Policy_AssignToObject: %x\n",ret); 
-            
-            EndPerf(READ_POLICY_PERF);
-            return TPM_POLICY_ERROR; 
-        }
-        
         /* Set Data Policy for the NVRAM object using the Owner Auth */
         ret = Tspi_Context_CreateObject(*hContext, TSS_OBJECT_TYPE_POLICY, TSS_POLICY_USAGE, &hDataPolicy);
         if (ret!=TSS_SUCCESS) 
