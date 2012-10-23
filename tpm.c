@@ -80,7 +80,7 @@ Decode_UINT32(BYTE * y)
 // return <TPM_NVDEFINE_ERROR> on define operation error.
 // return 0 if normal.
 int WriteNVRAM(
-    TSS_HCONTEXT* hContext, 
+    //TSS_HCONTEXT* hContext, 
     UINT32 space_size, 
     UINT32 nv_index, 
     UINT32 attribute,
@@ -89,16 +89,18 @@ int WriteNVRAM(
 ) 
 {
     TSS_RESULT      ret;
+    TSS_HCONTEXT    hContext;
     TSS_HNVSTORE    hNVStore;
     TSS_HPOLICY     hNewPolicy, hDataPolicy;
     unsigned int    bytesToWrite = 0, off = 0;
-    //char dataToStore[19]="This is some dat1.";
     
-    *(unsigned int*)data = WRITE_MAGIC_HEADER;
+    // Init TPM
+    InitTPM(&hContext, NULL, NULL, NULL);
+    
     BeginPerf(WRITE_ATTRIB_PERF);
     
     /* Create a NVRAM object */
-    ret = Tspi_Context_CreateObject(*hContext, TSS_OBJECT_TYPE_NV, 0, &hNVStore);
+    ret = Tspi_Context_CreateObject(hContext, TSS_OBJECT_TYPE_NV, 0, &hNVStore);
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM("Tspi_Context_CreateObject: %x\n",ret); 
@@ -141,7 +143,7 @@ int WriteNVRAM(
     BeginPerf(WRITE_POLICY_PERF);
     
     /* Set Policy for the NVRAM object using the Owner Auth */
-    ret = Tspi_Context_CreateObject(*hContext, TSS_OBJECT_TYPE_POLICY, TSS_POLICY_USAGE, &hNewPolicy);
+    ret = Tspi_Context_CreateObject(hContext, TSS_OBJECT_TYPE_POLICY, TSS_POLICY_USAGE, &hNewPolicy);
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM("Tspi_Context_CreateObject: %x\n",ret); 
@@ -169,7 +171,7 @@ int WriteNVRAM(
     }
     
     /* Set Data Policy for the NVRAM object using the Owner Auth */
-    ret = Tspi_Context_CreateObject(*hContext, TSS_OBJECT_TYPE_POLICY, TSS_POLICY_USAGE, &hDataPolicy);
+    ret = Tspi_Context_CreateObject(hContext, TSS_OBJECT_TYPE_POLICY, TSS_POLICY_USAGE, &hDataPolicy);
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM("Tspi_Context_CreateObject (DataPolicy): %x\n",ret); 
@@ -207,6 +209,9 @@ int WriteNVRAM(
 		UINT32 chunk = (bytesToWrite > WRITE_CHUNK_SIZE)
 			       ? WRITE_CHUNK_SIZE
 			       : bytesToWrite;
+        
+        *(unsigned int*)(data + off) = WRITE_MAGIC_HEADER;
+        
             ret = Tspi_NV_WriteValue(hNVStore, off, chunk, &data[off]);
             if (ret != TSS_SUCCESS) 
             { 
@@ -231,6 +236,7 @@ int WriteNVRAM(
         SetPerf(WRITE_KERNEL_TIMEOUT_JIFFIES, result.max_jiffies);
     }
     
+    FinalizeTPM(&hContext, NULL, NULL, NULL);
     return 0;
 }
 
@@ -238,7 +244,7 @@ int WriteNVRAM(
 // return <TPM_NVREAD_ERROR> on read operation error.
 // return 0 if normal.
 int ReadNVRAM(
-    TSS_HCONTEXT *hContext, 
+    //TSS_HCONTEXT *hContext, 
     UINT32 space_size, 
     UINT32 nv_index, 
     UINT32 ulDataLength, 
@@ -246,16 +252,19 @@ int ReadNVRAM(
     BYTE* data
 )
 {
+    TSS_HCONTEXT    hContext;
     TSS_HNVSTORE    hNVStore;
     TSS_HTPM        hTPM;
     TSS_HPOLICY     hTPMPolicy, hDataPolicy;
     TSS_RESULT      ret;
     BYTE*           rdata = 0;
     
+    InitTPM(&hContext, NULL, NULL, NULL);
+
     BeginPerf(READ_ATTRIB_PERF);
     
     /* Get TPM object */
-    ret = Tspi_Context_GetTpmObject(*hContext, &hTPM);
+    ret = Tspi_Context_GetTpmObject(hContext, &hTPM);
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM("Tspi_Context_GetTpmObject: %x\n",ret); 
@@ -265,7 +274,7 @@ int ReadNVRAM(
     }
         
     /* Create a NVRAM object */
-    ret = Tspi_Context_CreateObject(*hContext, TSS_OBJECT_TYPE_NV, 0, &hNVStore);
+    ret = Tspi_Context_CreateObject(hContext, TSS_OBJECT_TYPE_NV, 0, &hNVStore);
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM("Tspi_Context_CreateObject: %x\n",ret); 
@@ -334,7 +343,7 @@ int ReadNVRAM(
         }
         
         /* Set Data Policy for the NVRAM object using the Owner Auth */
-        ret = Tspi_Context_CreateObject(*hContext, TSS_OBJECT_TYPE_POLICY, TSS_POLICY_USAGE, &hDataPolicy);
+        ret = Tspi_Context_CreateObject(hContext, TSS_OBJECT_TYPE_POLICY, TSS_POLICY_USAGE, &hDataPolicy);
         if (ret!=TSS_SUCCESS) 
         { 
             LOG_TPM("Tspi_Context_CreateObject (DataPolicy): %x\n",ret); 
@@ -380,6 +389,8 @@ int ReadNVRAM(
     EndPerf(READ_NVREAD_PERF);
     
     memcpy(data, rdata, ulDataLength);
+    
+    FinalizeTPM(&hContext, &hTPM, NULL, NULL);
     return 0;
 }
 
@@ -390,8 +401,8 @@ int ReadNVRAM(
 // return <TPM_NVDEFINE_ERROR> on define operation error.
 // return 0 if normal.
 int DefineNVRAM(
-    TSS_HCONTEXT *hContext, 
-    TSS_HTPM* hTPM, 
+    //TSS_HCONTEXT *hContext, 
+    //TSS_HTPM* hTPM, 
     UINT32 space_size, 
     UINT32 nv_index,
     UINT32 attribute
@@ -400,11 +411,14 @@ int DefineNVRAM(
     TSS_HNVSTORE hNVStore;
     TSS_RESULT      ret;
     TSS_HPOLICY     hTPMPolicy;
+    TSS_HCONTEXT hContext;
+    TSS_HTPM hTPM;
     
+    InitTPM(&hContext, &hTPM, NULL, NULL);
     BeginPerf(DEFINE_ATTRIB_PERF);
     
     /* Create a NVRAM object */
-    ret = Tspi_Context_CreateObject(*hContext, TSS_OBJECT_TYPE_NV, 0, &hNVStore);
+    ret = Tspi_Context_CreateObject(hContext, TSS_OBJECT_TYPE_NV, 0, &hNVStore);
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM("Tspi_Context_CreateObject: %x\n",ret); 
@@ -450,7 +464,7 @@ int DefineNVRAM(
     
     /* In order to either instantiate or write to the NVRAM location in NVRAM, owner_auth is required. In the case of NVRAM, owner_auth comes from the TPM's policy object. We will put it in here. */
     /* First we get a TPM policy object*/
-    ret = Tspi_GetPolicyObject(*hTPM, TSS_POLICY_USAGE, &hTPMPolicy);
+    ret = Tspi_GetPolicyObject(hTPM, TSS_POLICY_USAGE, &hTPMPolicy);
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM("Tspi_GetPolicyObject: %x\n",ret); 
@@ -485,6 +499,7 @@ int DefineNVRAM(
     
     EndPerf(DEFINE_NVDEFINE_PERF);
     
+    FinalizeTPM(&hContext, &hTPM, NULL, NULL);
     return 0;
 }
 
@@ -497,38 +512,42 @@ void InitTPM(
 {
     TSS_UUID          SRK_UUID = TSS_UUID_SRK;
     TSS_RESULT        ret;
-    BYTE              wks[20]; // Place to put the well known secret
-
-    // Sanity Checks
-    assert(hContext != NULL);
-    assert(hTPM != NULL);
-    assert(hSRK != NULL);
-    assert(hSRKPolicy != NULL);
+    //BYTE              wks[20]; // Place to put the well known secret
     
-    memset(wks,0,20);// Set wks to the well known secret of 20 bytes of all zeros
+    //memset(wks,0,20);// Set wks to the well known secret of 20 bytes of all zeros
     
     // Pick the TPM you are talking to in this case the system TPM (which you connect to with ¡°NULL¡±)
-    ret = Tspi_Context_Create(hContext); 
-    LOG_TPM("Create a Context\n",ret); 
-    ret = Tspi_Context_Connect(*hContext, NULL); 
-    LOG_TPM("Connect to TPM\n", ret);
+    if(hContext)
+    {
+        ret = Tspi_Context_Create(hContext); 
+        LOG_TPM("Create a Context\n",ret); 
+        ret = Tspi_Context_Connect(*hContext, NULL); 
+        LOG_TPM("Connect to TPM\n", ret);
+    }
         
     // Get the TPM handle
-    ret = Tspi_Context_GetTpmObject(*hContext, hTPM); 
-    LOG_TPM("GetTPMHandle\n",ret); 
+    if(hTPM)
+    {
+        ret = Tspi_Context_GetTpmObject(*hContext, hTPM); 
+        LOG_TPM("GetTPMHandle\n",ret); 
+    }
 
     //Get the SRK handle
-    ret = Tspi_Context_LoadKeyByUUID(*hContext, TSS_PS_TYPE_SYSTEM, SRK_UUID, hSRK); 
-    LOG_TPM("Tspi_Context_Connect\n",ret);
+    if(hSRK && hSRKPolicy)
+    {
+        ret = Tspi_Context_LoadKeyByUUID(*hContext, TSS_PS_TYPE_SYSTEM, SRK_UUID, hSRK); 
+        LOG_TPM("Tspi_Context_Connect\n",ret);
 
-    //Get the SRK policy
-    ret = Tspi_GetPolicyObject(*hSRK, TSS_POLICY_USAGE, hSRKPolicy); 
-    LOG_TPM("Get TPM Policy\n" ,ret);
-    
-    // Then we set the SRK policy to be the well known secret
-    ret = Tspi_Policy_SetSecret(*hSRKPolicy,TSS_SECRET_MODE_SHA1,20, wks); 
-    // Note: TSS_SECRET_MODE_SHA1 says ¡°Don¡¯t hash this. Just use the 20 bytes as is.
-    LOG_TPM("Tspi_Policy_Set_Secret\n",ret);
+        //Get the SRK policy
+        ret = Tspi_GetPolicyObject(*hSRK, TSS_POLICY_USAGE, hSRKPolicy); 
+        LOG_TPM("Get TPM Policy\n" ,ret);
+        
+        // Then we set the SRK policy to be the well known secret
+        //ret = Tspi_Policy_SetSecret(*hSRKPolicy,TSS_SECRET_MODE_SHA1,20, wks); 
+        ret = Tspi_Policy_SetSecret(*hSRKPolicy,TSS_SECRET_MODE_PLAIN, OWNER_PASSWD_LENGTH, (BYTE*)OWNER_PASSWD);
+        // Note: TSS_SECRET_MODE_SHA1 says ¡°Don¡¯t hash this. Just use the 20 bytes as is.
+        LOG_TPM("Tspi_Policy_Set_Secret\n",ret);
+    }
 }
 
 void FinalizeTPM(
@@ -538,30 +557,37 @@ void FinalizeTPM(
     TSS_HPOLICY* hSRKPolicy
 )
 {
-    // Sanity Checks
-    assert(hContext != NULL);
-    assert(hTPM != NULL);
-    assert(hSRK != NULL);
-    assert(hSRKPolicy != NULL);
-    
     /* Clean up */
-    Tspi_Context_Close (*hTPM);
-    Tspi_Context_Close (*hSRK);
-    Tspi_Context_Close (*hSRKPolicy);
-    // this frees memory that was automatically allocated for you
-    Tspi_Context_FreeMemory(*hContext, NULL);
+    if(hTPM)
+        Tspi_Context_Close (*hTPM);
     
-    Tspi_Context_Close(*hContext);
+    if(hSRK)
+        Tspi_Context_Close (*hSRK);
+    
+    if(hSRKPolicy)
+        Tspi_Context_Close (*hSRKPolicy);
+    
+    if(hContext)
+    {
+        // this frees memory that was automatically allocated for you
+        Tspi_Context_FreeMemory(*hContext, NULL);
+        
+        Tspi_Context_Close(*hContext);
+    }
 }
 
 // Return 1 - defined. 0- undefined. 
 // Return TPMUTIL_GETCAP_ERROR on error.
-int IsNVIndexDefined(TSS_HTPM* hTpm, UINT32 nv_index)
+int IsNVIndexDefined(UINT32 nv_index)
 {
     UINT32 i, ulResultLen;
+    TSS_HTPM hTPM;
+    TSS_HCONTEXT hContext;
 	BYTE *pResult = NULL;
     
-    if (getCapability(*hTpm, TSS_TPMCAP_NV_LIST, 0, NULL,
+    InitTPM(&hContext, &hTPM, NULL, NULL);
+    
+    if (getCapability(hTPM, TSS_TPMCAP_NV_LIST, 0, NULL,
 			  &ulResultLen, &pResult) != TSS_SUCCESS) {
 		PRINT("GetCapability Error\n");
         return TPMUTIL_GETCAP_ERROR;
@@ -577,5 +603,6 @@ int IsNVIndexDefined(TSS_HTPM* hTpm, UINT32 nv_index)
         }
 	}
     
+    FinalizeTPM(&hContext, &hTPM, NULL, NULL);
     return 0;
 }

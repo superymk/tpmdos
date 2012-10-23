@@ -27,7 +27,7 @@
  *      NVRAM write failure.
  *
  */
-extern void PerfNVWrite40bytes(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM);
+extern void PerfNVWrite40bytes(void);
 
 /*
  * NAME
@@ -54,7 +54,7 @@ extern void PerfNVWrite40bytes(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM);
  *      read failure and string comparison failure.
  *
  */
-extern void PerfNVRead40bytes(TSS_HCONTEXT* hContext);
+extern void PerfNVRead40bytes(void);
 
 /*
  * NAME
@@ -81,7 +81,7 @@ extern void PerfNVRead40bytes(TSS_HCONTEXT* hContext);
  *      NVRAM write failure.
  *
  */
-extern void PerfNVWrite705bytes(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM);
+extern void PerfNVWrite705bytes(void);
 
 /*
  * NAME
@@ -108,7 +108,7 @@ extern void PerfNVWrite705bytes(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM);
  *      read failure and string comparison failure.
  *
  */
-extern void PerfNVRead705bytes(TSS_HCONTEXT* hContext);
+extern void PerfNVRead705bytes(void);
 
 /*
  * NAME
@@ -135,7 +135,7 @@ extern void PerfNVRead705bytes(TSS_HCONTEXT* hContext);
  *      NVRAM write failure.
  *
  */
-extern void PerfNVWriteAllIFX1212(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM);
+extern void PerfNVWriteAllIFX1212(void);
 
 /*
  * NAME
@@ -162,6 +162,6 @@ extern void PerfNVWriteAllIFX1212(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM);
  *      read failure and string comparison failure.
  *
  */
-extern void PerfNVReadAllIFX1212(TSS_HCONTEXT* hContext);
+extern void PerfNVReadAllIFX1212(void);
 
 #endif

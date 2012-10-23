@@ -46,7 +46,7 @@ extern void FinalizeTPM(
 // return <TPM_NVDEFINE_ERROR> on define operation error.
 // return 0 if normal.
 extern int WriteNVRAM(   
-TSS_HCONTEXT* hContext, 
+//TSS_HCONTEXT* hContext, 
     UINT32 space_size, 
     UINT32 nv_index, 
     UINT32 attribute,
@@ -58,7 +58,7 @@ TSS_HCONTEXT* hContext,
 // return <TPM_NVREAD_ERROR> on read operation error.
 // return 0 if normal.
 extern int ReadNVRAM(
-    TSS_HCONTEXT*   hContext, 
+    //TSS_HCONTEXT*   hContext, 
     UINT32          space_size, 
     UINT32          nv_index, 
     UINT32          ulDataLength,
@@ -73,8 +73,8 @@ extern int ReadNVRAM(
 // return <TPM_NVDEFINE_ERROR> on define operation error.
 // return 0 if normal.
 extern int DefineNVRAM(
-    TSS_HCONTEXT *hContext, 
-    TSS_HTPM* hTPM,
+    //TSS_HCONTEXT *hContext, 
+    //TSS_HTPM* hTPM,
     UINT32 space_size, 
     UINT32 nv_index,
     UINT32 attribute
@@ -83,7 +83,6 @@ extern int DefineNVRAM(
 // Return 1 - defined. 0- undefined. 
 // Return TPMUTIL_GETCAP_ERROR on error.
 extern int IsNVIndexDefined(
-    TSS_HTPM* hTpm, 
     UINT32 nv_index
 );
 

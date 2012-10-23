@@ -486,6 +486,14 @@ static int tpm_tis_send(struct tpm_chip *chip, u8 *buf, size_t len)
 	unsigned long max_jiffies = 0;
 	u64 start_timer = 0, end_timer = 0;
 	int res = memlocate(buf, 0xbabecafe, len);
+	
+	if(res)
+	{
+		buf[0] = buf[4];// Restore data
+		buf[1] = buf[4];
+		buf[2] = buf[4];
+		buf[3] = buf[4];
+	}
 	//printk(KERN_INFO "[TPMDoS Driver] MAGIC_HEADER found:%d, size:%u\n", result, len);
 	
 	QueryPerformanceCounter(&start_timer);
