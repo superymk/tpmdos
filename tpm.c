@@ -536,33 +536,40 @@ void InitTPM(
     if(hContext)
     {
         ret = Tspi_Context_Create(hContext); 
-        LOG_TPM("Create a Context\n",ret); 
+        if (ret!=TSS_SUCCESS) 
+            LOG_TPM("Create a Context\n",ret); 
+        
         ret = Tspi_Context_Connect(*hContext, NULL); 
-        LOG_TPM("Connect to TPM\n", ret);
+        if (ret!=TSS_SUCCESS) 
+            LOG_TPM("Connect to TPM\n", ret);
     }
         
     // Get the TPM handle
     if(hTPM)
     {
         ret = Tspi_Context_GetTpmObject(*hContext, hTPM); 
-        LOG_TPM("GetTPMHandle\n",ret); 
+        if (ret!=TSS_SUCCESS) 
+            LOG_TPM("GetTPMHandle\n",ret); 
     }
 
     //Get the SRK handle
     if(hSRK && hSRKPolicy)
     {
         ret = Tspi_Context_LoadKeyByUUID(*hContext, TSS_PS_TYPE_SYSTEM, SRK_UUID, hSRK); 
-        LOG_TPM("Tspi_Context_Connect\n",ret);
+        if (ret!=TSS_SUCCESS) 
+            LOG_TPM("Tspi_Context_Connect\n",ret);
 
         //Get the SRK policy
         ret = Tspi_GetPolicyObject(*hSRK, TSS_POLICY_USAGE, hSRKPolicy); 
-        LOG_TPM("Get TPM Policy\n" ,ret);
+        if (ret!=TSS_SUCCESS) 
+            LOG_TPM("Get TPM Policy\n" ,ret);
         
         // Then we set the SRK policy to be the well known secret
         //ret = Tspi_Policy_SetSecret(*hSRKPolicy,TSS_SECRET_MODE_SHA1,20, wks); 
         ret = Tspi_Policy_SetSecret(*hSRKPolicy,TSS_SECRET_MODE_PLAIN, OWNER_PASSWD_LENGTH, (BYTE*)OWNER_PASSWD);
         // Note: TSS_SECRET_MODE_SHA1 says ¡°Don¡¯t hash this. Just use the 20 bytes as is.
-        LOG_TPM("Tspi_Policy_Set_Secret\n",ret);
+        if (ret!=TSS_SUCCESS) 
+            LOG_TPM("Tspi_Policy_Set_Secret\n",ret);
     }
 }
 

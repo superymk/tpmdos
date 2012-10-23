@@ -73,7 +73,7 @@ int main(int argc, char** argv)
 // Main entry of perf cases.
 void RunPerfCases(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM)
 {
-    //while(1)
+    while(1)
     {
         //PerfNVWrite40bytes();
         //PerfNVRead40bytes();
