@@ -247,6 +247,7 @@ int ReadNVRAM(
 )
 {
     TSS_HNVSTORE    hNVStore;
+    TSS_HTPM        hTPM;
     TSS_HPOLICY     hNewPolicy, hDataPolicy;
     TSS_RESULT      ret;
     BYTE*           rdata = 0;
@@ -299,11 +300,20 @@ int ReadNVRAM(
     {
         BeginPerf(READ_POLICY_PERF);
         
-        /* Set Policy for the NVRAM object using the Owner Auth */
-        ret = Tspi_Context_CreateObject(*hContext, TSS_OBJECT_TYPE_POLICY, TSS_POLICY_USAGE, &hNewPolicy);
+        ret = Tspi_Context_GetTpmObject(*hContext, &hTPM);
         if (ret!=TSS_SUCCESS) 
         { 
-            LOG_TPM("Tspi_Context_CreateObject: %x\n",ret); 
+            LOG_TPM("Tspi_Context_GetTpmObject: %x\n",ret); 
+            
+            EndPerf(READ_POLICY_PERF);
+            return TPM_POLICY_ERROR; 
+        }
+        
+        /* Set Policy for the NVRAM object using the Owner Auth */
+        ret = Tspi_GetPolicyObject(hTPM, TSS_POLICY_USAGE, &hNewPolicy);
+        if (ret!=TSS_SUCCESS) 
+        { 
+            LOG_TPM("Tspi_GetPolicyObject: %x\n",ret); 
             
             EndPerf(READ_POLICY_PERF);
             return TPM_POLICY_ERROR; 
