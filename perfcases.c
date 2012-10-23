@@ -363,12 +363,12 @@ void PerfNVWriteAllIFX1212()
     
     // Run
     // Generate a comprehensive string for next write.
-    FLIP_BYTES((dataToStore705), (WRITE705_SPACE_SZ));
+    FLIP_BYTES(dataToStore705, (WRITE705_SPACE_SZ));
     dataToStore705[WRITE705_SPACE_SZ] = '\0';
-    FLIP_BYTES((dataToStore1704), (WRITE1704_SPACE_SZ));
+    FLIP_BYTES(dataToStore1704, WRITE1704_SPACE_SZ);
     dataToStore1704[WRITE1704_SPACE_SZ] = '\0';
-    FLIP_BYTES((dataToStore576), (WRITE576_SPACE_SZ));
-    dataToStore1704[WRITE1704_SPACE_SZ] = '\0';
+    FLIP_BYTES(dataToStore576, WRITE576_SPACE_SZ);
+    dataToStore576[WRITE576_SPACE_SZ] = '\0';
     
     {
         // Mark run type first
