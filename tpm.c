@@ -101,23 +101,22 @@ static int InitWriteTPM(
     static TSS_HPOLICY     hNewPolicy, hDataPolicy;
     static TSS_HNVSTORE    hNVStore;
     TSS_RESULT      ret;
-    //static int isInit = 0;
+    static int isInit = 0;
     
     if(Finalize)
     {
         FinalizeTPM(&hContext, &hTPM, NULL, NULL);
         
-        //isInit = 0;
+        isInit = 0;
         return TSS_SUCCESS;
     }
     
-    //if(!isInit)
+    BeginPerf(WRITE_ATTRIB_PERF);
+    
+    if(!isInit)
     {
         InitTPM(&hContext, NULL, NULL, NULL);
         
-        
-        BeginPerf(WRITE_ATTRIB_PERF);
-    
         /* Create a NVRAM object */
         ret = Tspi_Context_CreateObject(hContext, TSS_OBJECT_TYPE_NV, 0, &hNVStore);
         if (ret!=TSS_SUCCESS) 
@@ -127,7 +126,8 @@ static int InitWriteTPM(
             EndPerf(WRITE_ATTRIB_PERF);
             return TPM_ATTIBUTE_ERROR; 
         }
-        
+    
+    }
         /*Next its arbitrary index will be 0x00011101 (00-FF are taken, along with 00011600). */
         ret = Tspi_SetAttribUint32(hNVStore, TSS_TSPATTRIB_NV_INDEX,0, nv_index);
         if (ret!=TSS_SUCCESS) 
@@ -158,69 +158,70 @@ static int InitWriteTPM(
             return TPM_ATTIBUTE_ERROR; 
         }
         
-        EndPerf(WRITE_ATTRIB_PERF);
-        BeginPerf(WRITE_POLICY_PERF);
-        
-        /* Set Policy for the NVRAM object using the Owner Auth */
-        ret = Tspi_Context_CreateObject(hContext, TSS_OBJECT_TYPE_POLICY, TSS_POLICY_USAGE, &hNewPolicy);
-        if (ret!=TSS_SUCCESS) 
-        { 
-            LOG_TPM("Tspi_Context_CreateObject: %x\n",ret); 
+    EndPerf(WRITE_ATTRIB_PERF);
+    BeginPerf(WRITE_POLICY_PERF);
+        if(!isInit)
+        {
+            /* Set Policy for the NVRAM object using the Owner Auth */
+            ret = Tspi_Context_CreateObject(hContext, TSS_OBJECT_TYPE_POLICY, TSS_POLICY_USAGE, &hNewPolicy);
+            if (ret!=TSS_SUCCESS) 
+            { 
+                LOG_TPM("Tspi_Context_CreateObject: %x\n",ret); 
+                
+                EndPerf(WRITE_POLICY_PERF);
+                return TPM_POLICY_ERROR; 
+            }
             
-            EndPerf(WRITE_POLICY_PERF);
-            return TPM_POLICY_ERROR; 
-        }
-        
-        ret = Tspi_Policy_SetSecret(hNewPolicy, TSS_SECRET_MODE_PLAIN, OWNER_PASSWD_LENGTH, (BYTE*)OWNER_PASSWD);
-        if (ret!=TSS_SUCCESS) 
-        { 
-            LOG_TPM("Tspi_Policy_SetSecret: %x\n",ret); 
+            ret = Tspi_Policy_SetSecret(hNewPolicy, TSS_SECRET_MODE_PLAIN, OWNER_PASSWD_LENGTH, (BYTE*)OWNER_PASSWD);
+            if (ret!=TSS_SUCCESS) 
+            { 
+                LOG_TPM("Tspi_Policy_SetSecret: %x\n",ret); 
+                
+                EndPerf(WRITE_POLICY_PERF);
+                return TPM_POLICY_ERROR; 
+            }
             
-            EndPerf(WRITE_POLICY_PERF);
-            return TPM_POLICY_ERROR; 
-        }
-        
-        ret = Tspi_Policy_AssignToObject(hNewPolicy,hNVStore);
-        if (ret!=TSS_SUCCESS) 
-        { 
-            LOG_TPM(" Tspi_Policy_AssignToObject: %x\n",ret); 
+            ret = Tspi_Policy_AssignToObject(hNewPolicy,hNVStore);
+            if (ret!=TSS_SUCCESS) 
+            { 
+                LOG_TPM(" Tspi_Policy_AssignToObject: %x\n",ret); 
+                
+                EndPerf(WRITE_POLICY_PERF);
+                return TPM_POLICY_ERROR; 
+            }
             
-            EndPerf(WRITE_POLICY_PERF);
-            return TPM_POLICY_ERROR; 
-        }
-        
-        /* Set Data Policy for the NVRAM object using the Owner Auth */
-        ret = Tspi_Context_CreateObject(hContext, TSS_OBJECT_TYPE_POLICY, TSS_POLICY_USAGE, &hDataPolicy);
-        if (ret!=TSS_SUCCESS) 
-        { 
-            LOG_TPM("Tspi_Context_CreateObject (DataPolicy): %x\n",ret); 
+            /* Set Data Policy for the NVRAM object using the Owner Auth */
+            ret = Tspi_Context_CreateObject(hContext, TSS_OBJECT_TYPE_POLICY, TSS_POLICY_USAGE, &hDataPolicy);
+            if (ret!=TSS_SUCCESS) 
+            { 
+                LOG_TPM("Tspi_Context_CreateObject (DataPolicy): %x\n",ret); 
+                
+                EndPerf(WRITE_POLICY_PERF);
+                return TPM_POLICY_ERROR; 
+            }
             
-            EndPerf(WRITE_POLICY_PERF);
-            return TPM_POLICY_ERROR; 
-        }
-        
-        ret = Tspi_Policy_SetSecret(hDataPolicy, TSS_SECRET_MODE_PLAIN, OWNER_PASSWD_LENGTH, (BYTE*)OWNER_PASSWD);
-        if (ret!=TSS_SUCCESS) 
-        { 
-            LOG_TPM("Tspi_Policy_SetSecret (DataPolicy): %x\n",ret); 
+            ret = Tspi_Policy_SetSecret(hDataPolicy, TSS_SECRET_MODE_PLAIN, OWNER_PASSWD_LENGTH, (BYTE*)OWNER_PASSWD);
+            if (ret!=TSS_SUCCESS) 
+            { 
+                LOG_TPM("Tspi_Policy_SetSecret (DataPolicy): %x\n",ret); 
+                
+                EndPerf(WRITE_POLICY_PERF);
+                return TPM_POLICY_ERROR; 
+            }
             
-            EndPerf(WRITE_POLICY_PERF);
-            return TPM_POLICY_ERROR; 
-        }
-        
-        ret = Tspi_Policy_AssignToObject(hDataPolicy,hNVStore);
-        if (ret!=TSS_SUCCESS) 
-        { 
-            LOG_TPM(" Tspi_Policy_AssignToObject (DataPolicy): %x\n",ret); 
-            
-            EndPerf(WRITE_POLICY_PERF);
-            return TPM_POLICY_ERROR; 
-        }
+            ret = Tspi_Policy_AssignToObject(hDataPolicy,hNVStore);
+            if (ret!=TSS_SUCCESS) 
+            { 
+                LOG_TPM(" Tspi_Policy_AssignToObject (DataPolicy): %x\n",ret); 
+                
+                EndPerf(WRITE_POLICY_PERF);
+                return TPM_POLICY_ERROR; 
+            }
 
-        EndPerf(WRITE_POLICY_PERF);
-    
-        //isInit = 1;
-    }
+            EndPerf(WRITE_POLICY_PERF);
+            
+            isInit = 1;
+        }
     
     *phNVStore = &hNVStore;
     
@@ -314,43 +315,46 @@ static int InitReadTPM(
     //~ static TSS_HPOLICY hSRKPolicy;
     static TSS_HPOLICY     hTPMPolicy, hDataPolicy;
     static TSS_HNVSTORE    hNVStore;
-    //static int isInit = 0;
+    static int isInit = 0;
     TSS_RESULT      ret;
     
     if(Finalize)
     {
         FinalizeTPM(&hContext, &hTPM, NULL, NULL);
         
-        //isInit = 0;
+        isInit = 0;
         return TSS_SUCCESS;
     }
-    //if(!isInit)
-    {
-        InitTPM(&hContext, NULL, NULL, NULL);
-        
-        
-        BeginPerf(READ_ATTRIB_PERF);
     
-        /* Get TPM object */
-        ret = Tspi_Context_GetTpmObject(hContext, &hTPM);
-        if (ret!=TSS_SUCCESS) 
-        { 
-            LOG_TPM("Tspi_Context_GetTpmObject: %x\n",ret); 
+    BeginPerf(READ_ATTRIB_PERF);
+    
+        if(!isInit)
+        {
+            InitTPM(&hContext, NULL, NULL, NULL);
+            
+            /* Get TPM object */
+            ret = Tspi_Context_GetTpmObject(hContext, &hTPM);
+            if (ret!=TSS_SUCCESS) 
+            { 
+                LOG_TPM("Tspi_Context_GetTpmObject: %x\n",ret); 
+                    
+                EndPerf(READ_ATTRIB_PERF);
+                return TPM_POLICY_ERROR; 
+            }
                 
-            EndPerf(READ_ATTRIB_PERF);
-            return TPM_POLICY_ERROR; 
-        }
+            /* Create a NVRAM object */
+            ret = Tspi_Context_CreateObject(hContext, TSS_OBJECT_TYPE_NV, 0, &hNVStore);
+            if (ret!=TSS_SUCCESS) 
+            { 
+                LOG_TPM("Tspi_Context_CreateObject: %x\n",ret); 
+                
+                EndPerf(READ_ATTRIB_PERF);
+                return TPM_ATTIBUTE_ERROR; 
+            }
             
-        /* Create a NVRAM object */
-        ret = Tspi_Context_CreateObject(hContext, TSS_OBJECT_TYPE_NV, 0, &hNVStore);
-        if (ret!=TSS_SUCCESS) 
-        { 
-            LOG_TPM("Tspi_Context_CreateObject: %x\n",ret); 
             
-            EndPerf(READ_ATTRIB_PERF);
-            return TPM_ATTIBUTE_ERROR; 
         }
-        
+    
         /*Next its arbitrary index will be 0x00011101 (00-FF are taken, along with 00011600). */
         ret = Tspi_SetAttribUint32(hNVStore, TSS_TSPATTRIB_NV_INDEX,0, nv_index);
         if (ret!=TSS_SUCCESS) 
@@ -385,8 +389,9 @@ static int InitReadTPM(
             }
         
         
-        EndPerf(READ_ATTRIB_PERF);
+    EndPerf(READ_ATTRIB_PERF);
         
+        if(!isInit)
         {
             BeginPerf(READ_POLICY_PERF);
             
@@ -438,11 +443,9 @@ static int InitReadTPM(
             }
 
             EndPerf(READ_POLICY_PERF);
+            
+            isInit = 1;
         }
-
-    
-        //isInit = 1;
-    }
     
     *phNVStore = &hNVStore;
 
