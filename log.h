@@ -25,14 +25,18 @@
 
 // Available <last_run_type>
 // NOTE: <last_run_type> is also used to fetch the item recorded in <TPMDOS_META>
-#define G_RUN_CNT       0
-#define L_TEST          1  // This one is only used for test purpose
-#define WRITE_40BYTES   2
-#define READ_40BYTES    3
-#define DEFINE_NVRAM    4
-#define WRITE_705BYTES   5
-#define READ_705BYTES    6
-#define INVALID_BOUND   7  // Increase this bound to include new items. 
+#define G_RUN_CNT           0
+#define L_TEST              1  // This one is only used for test purpose
+#define WRITE_40BYTES       2
+#define READ_40BYTES        3
+#define DEFINE_NVRAM        4
+#define WRITE_705BYTES      5
+#define READ_705BYTES       6
+#define WRITE_1704BYTES     7
+#define READ_1704BYTES      8
+#define WRITE_576BYTES      9
+#define READ_576BYTES       10
+#define INVALID_BOUND       11  // Increase this bound to include new items. 
 
 // Record the latest finished run result.
 typedef struct
@@ -55,7 +59,13 @@ typedef struct
     uint64_t L_test;// Test purpose only
     uint64_t Write_40bytes;
     uint64_t Read_40bytes;
+    uint64_t Write_705bytes;
+    uint64_t Read_705bytes;
     uint64_t Define_NVRAM;
+    uint64_t Write_1704bytes;
+    uint64_t Read_1704bytes;
+    uint64_t Write_576bytes;
+    uint64_t Read_576bytes;
     
 } TPMDOS_META, *PTPMDOS_META;
 

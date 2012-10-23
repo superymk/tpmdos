@@ -58,11 +58,12 @@ TSS_HCONTEXT* hContext,
 // return <TPM_NVREAD_ERROR> on read operation error.
 // return 0 if normal.
 extern int ReadNVRAM(
-    TSS_HCONTEXT* hContext, 
-    UINT32 space_size, 
-    UINT32 nv_index, 
-    UINT32 ulDataLength, 
-    BYTE* data
+    TSS_HCONTEXT*   hContext, 
+    UINT32          space_size, 
+    UINT32          nv_index, 
+    UINT32          ulDataLength,
+    UINT32          needAuth,
+    BYTE*           data
 );
 
 // Define a space in NVRAM. 

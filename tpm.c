@@ -202,10 +202,12 @@ int ReadNVRAM(
     UINT32 space_size, 
     UINT32 nv_index, 
     UINT32 ulDataLength, 
+    UINT32 needAuth,
     BYTE* data
 )
 {
     TSS_HNVSTORE    hNVStore;
+    TSS_HPOLICY     hNewPolicy;
     TSS_RESULT      ret;
     BYTE*           rdata = 0;
     
@@ -241,7 +243,7 @@ int ReadNVRAM(
         return TPM_ATTIBUTE_ERROR; 
     }
     
-    /* next it holds 40 bytes of data */
+    /* next it holds <space_size> bytes of data */
     ret = Tspi_SetAttribUint32(hNVStore, TSS_TSPATTRIB_NV_DATASIZE, 0, space_size);
     if (ret!=TSS_SUCCESS) 
     { 
@@ -252,6 +254,42 @@ int ReadNVRAM(
     }
     
     EndPerf(READ_ATTRIB_PERF);
+    
+    if(needAuth)
+    {
+        BeginPerf(READ_POLICY_PERF);
+        
+        /* Set Policy for the NVRAM object using the Owner Auth */
+        ret = Tspi_Context_CreateObject(*hContext, TSS_OBJECT_TYPE_POLICY, TSS_POLICY_USAGE, &hNewPolicy);
+        if (ret!=TSS_SUCCESS) 
+        { 
+            LOG_TPM("Tspi_Context_CreateObject: %x\n",ret); 
+            
+            EndPerf(READ_POLICY_PERF);
+            return TPM_POLICY_ERROR; 
+        }
+        
+        ret = Tspi_Policy_SetSecret(hNewPolicy, TSS_SECRET_MODE_PLAIN, OWNER_PASSWD_LENGTH, (BYTE*)OWNER_PASSWD);
+        if (ret!=TSS_SUCCESS) 
+        { 
+            LOG_TPM("Tspi_Policy_SetSecret: %x\n",ret); 
+            
+            EndPerf(READ_POLICY_PERF);
+            return TPM_POLICY_ERROR; 
+        }
+        
+        ret = Tspi_Policy_AssignToObject(hNewPolicy,hNVStore);
+        if (ret!=TSS_SUCCESS) 
+        { 
+            LOG_TPM(" Tspi_Policy_AssignToObject: %x\n",ret); 
+            
+            EndPerf(READ_POLICY_PERF);
+            return TPM_POLICY_ERROR; 
+        }
+
+        EndPerf(READ_POLICY_PERF);
+    }
+
     BeginPerf(READ_NVREAD_PERF);
     
     /* No authorization needed to read from this NVRAM the way it was created. */

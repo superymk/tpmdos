@@ -40,6 +40,8 @@ void FormatMsg(int log_type, char* msg)
         
         case WRITE_40BYTES:
         case WRITE_705BYTES:
+        case WRITE_1704BYTES:
+        case WRITE_576BYTES:
            if(log_type == LOG_GENERAL)
             {
                 char        type_str[LOG_MSG_LENGTH] = {0};
@@ -81,6 +83,8 @@ void FormatMsg(int log_type, char* msg)
             
         case READ_40BYTES:
         case READ_705BYTES:
+        case READ_1704BYTES:
+        case READ_576BYTES:
             if(log_type == LOG_GENERAL)
             {
                 char        type_str[LOG_MSG_LENGTH] = {0};

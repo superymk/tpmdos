@@ -17,6 +17,10 @@ FileName: (TypeName)
 #define GNUPLOT_READ_40BYTES_FILEPATH       "gnuplot-read40"
 #define GNUPLOT_WRITE_705BYTES_FILEPATH      "gnuplot-write705"
 #define GNUPLOT_READ_705BYTES_FILEPATH       "gnuplot-read705"
+#define GNUPLOT_WRITE_1704BYTES_FILEPATH      "gnuplot-write1704"
+#define GNUPLOT_READ_1704BYTES_FILEPATH       "gnuplot-read1704"
+#define GNUPLOT_WRITE_576BYTES_FILEPATH      "gnuplot-write576"
+#define GNUPLOT_READ_576BYTES_FILEPATH       "gnuplot-read576"
 #define GNUPLOT_DEFINE_NVRAM_FILEPATH       "gnuplot-defineNV"
 
 // Format and output the result

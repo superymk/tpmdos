@@ -20,6 +20,7 @@
 
 #define READ_NVREAD_PERF                0
 #define READ_ATTRIB_PERF                1
+#define READ_POLICY_PERF                2
 
 
 // Available Log Type

@@ -24,12 +24,18 @@ static void WriteMetaFile()
     
     // NOTE: I do not want to use binary serialization here because I think
     // it good to keep human readable.
-    sprintf(str, "%llu,%llu,%llu,%llu,%llu", 
+    sprintf(str, "%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu", 
             (long long unsigned int)g_meta.g_test_cnt,
             (long long unsigned int)g_meta.L_test,
             (long long unsigned int)g_meta.Write_40bytes,
             (long long unsigned int)g_meta.Read_40bytes,
-            (long long unsigned int)g_meta.Define_NVRAM
+            (long long unsigned int)g_meta.Define_NVRAM,
+            (long long unsigned int)g_meta.Write_705bytes,
+            (long long unsigned int)g_meta.Read_705bytes,
+            (long long unsigned int)g_meta.Write_1704bytes,
+            (long long unsigned int)g_meta.Read_1704bytes,
+            (long long unsigned int)g_meta.Write_576bytes,
+            (long long unsigned int)g_meta.Read_576bytes
     );
     
     GenerateFilePath(meta_fn, META_FILEPATH);
@@ -159,7 +165,7 @@ void SetPerf(int index, uint64_t result)
 void TranslateRunType(int run_type, char* str)
 {
     char *run_type_str[]= 
-    { NULL, "L_TEST","WRITE_40BYTES","READ_40BYTES","DEFINE_NVRAM", "WRITE_705BYTES","READ_705BYTES" };
+    { NULL, "L_TEST","WRITE_40BYTES","READ_40BYTES","DEFINE_NVRAM", "WRITE_705BYTES","READ_705BYTES", "WRITE_1704BYTES", "READ_1704BYTES", "WRITE_576BYTES", "READ_576BYTES"};
     char *result;
 
     if ( (run_type <= G_RUN_CNT) || (run_type >= INVALID_BOUND) )
@@ -186,12 +192,18 @@ void ReadMetaFile()
         return;
     }
     
-    fscanf(fp, "%llu,%llu,%llu,%llu,%llu", 
+    fscanf(fp, "%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu", 
             (long long unsigned int*)&g_meta.g_test_cnt,
             (long long unsigned int*)&g_meta.L_test,
             (long long unsigned int*)&g_meta.Write_40bytes,
             (long long unsigned int*)&g_meta.Read_40bytes,
-            (long long unsigned int*)&g_meta.Define_NVRAM
+            (long long unsigned int*)&g_meta.Define_NVRAM,
+            (long long unsigned int*)&g_meta.Write_705bytes,
+            (long long unsigned int*)&g_meta.Read_705bytes,
+            (long long unsigned int*)&g_meta.Write_1704bytes,
+            (long long unsigned int*)&g_meta.Read_1704bytes,
+            (long long unsigned int*)&g_meta.Write_576bytes,
+            (long long unsigned int*)&g_meta.Read_576bytes
     );
     
     fclose(fp);
