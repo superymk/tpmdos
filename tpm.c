@@ -258,6 +258,7 @@ int ReadNVRAM(
     TSS_HPOLICY     hTPMPolicy, hDataPolicy;
     TSS_RESULT      ret;
     BYTE*           rdata = 0;
+    unsigned int    bytesToRead = 0, off = 0;
     
     InitTPM(&hContext, NULL, NULL, NULL);
 
@@ -377,18 +378,30 @@ int ReadNVRAM(
     
     /* No authorization needed to read from this NVRAM the way it was created. */
     /* Read from the NVRAM space */
-    ret = Tspi_NV_ReadValue(hNVStore,0, &ulDataLength, &rdata);
-    if (ret!=TSS_SUCCESS) 
-    { 
-        LOG_TPM("Tspi_NV_ReadValue: %x\n",ret);
+    #define READ_CHUNK_SIZE   1024
+    bytesToRead = ulDataLength;
+	while (bytesToRead > 0) {
+		UINT32 chunk = (bytesToRead > READ_CHUNK_SIZE)
+			       ? READ_CHUNK_SIZE
+			       : bytesToRead;
+        
+        ret = Tspi_NV_ReadValue(hNVStore, off, &chunk, &rdata);
+        if (ret!=TSS_SUCCESS) 
+        { 
+            LOG_TPM("Tspi_NV_ReadValue: %x\n",ret);
 
-        EndPerf(READ_NVREAD_PERF);        
-        return TPM_NVREAD_ERROR; 
-    }
+            EndPerf(READ_NVREAD_PERF);        
+            return TPM_NVREAD_ERROR; 
+        }
+        
+        memcpy(&data[off], rdata, chunk);
+        
+		bytesToRead -= chunk;
+		off += chunk;
+	}
+    
     
     EndPerf(READ_NVREAD_PERF);
-    
-    memcpy(data, rdata, ulDataLength);
     
     FinalizeTPM(&hContext, &hTPM, NULL, NULL);
     return 0;
