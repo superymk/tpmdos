@@ -315,9 +315,9 @@ void PerfNVRead705bytes(TSS_HCONTEXT* hContext)
  *		Tspi_Context_CreateObject(NV object)
  *		Setsecret to TPM policy with the correct owner passwd
  *		Tspi_SetAttribUint32(Index, permission, datasize)
- *		(The Index is 0x00011101)
+ *		(The Index is 0x00011101, 0x30000001, 0x1000f000)
  *		(The Permission is OWNERWRITE)
- *		(The datasize is 705)
+ *		(The datasize is (ALL - 118))
  *		Tspi_NV_ReleaseSpace
  *
  * Run:	
@@ -450,9 +450,9 @@ void PerfNVWriteAllIFX1212(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM)
  *		Tspi_Context_CreateObject(NV object)
  *		Setsecret to TPM policy with the correct owner passwd
  *		Tspi_SetAttribUint32(Index, permission, datasize)
- *		(The Index is 0x00011101)
+ *		(The Index is 0x00011101, 0x30000001, 0x1000f000)
  *		(The Permission is OWNERWRITE)
- *		(The datasize is 705)
+ *		(The datasize is (ALL - 118))
  *		Tspi_NV_ReleaseSpace
  *
  * Run:	
@@ -540,7 +540,7 @@ void PerfNVReadAllIFX1212(TSS_HCONTEXT* hContext)
         memset(dataToRead576, 0, READ576_SPACE_SZ);
         
         // Run
-        ret = ReadNVRAM(hContext, READ576_SPACE_SZ, 0x1000f000, READ576_SPACE_SZ, FALSE, (BYTE*)dataToRead576);
+        ret = ReadNVRAM(hContext, READ576_SPACE_SZ, 0x30000001, READ576_SPACE_SZ, FALSE, (BYTE*)dataToRead576);
         if (ret == TPM_NVREAD_ERROR)
         {
             PRINT("(%s FAILED) NVRead Fail.\n", __func__ );
