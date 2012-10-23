@@ -223,18 +223,21 @@ int WriteNVRAM(
 
 		bytesToWrite -= chunk;
 		off += chunk;
+            
+        /* Read the NVWrite performance in kernel mode */
+        {
+            TPM_DRIVER_NVWRITE_TIMER result;
+            
+            ReadDriverNVWriteResult(&result);
+            result.timer_result += GetPerf(WRITE_KERNEL_PERF);
+            result.max_jiffies += GetPerf(WRITE_KERNEL_TIMEOUT_JIFFIES);
+            
+            SetPerf(WRITE_KERNEL_PERF, result.timer_result);
+            SetPerf(WRITE_KERNEL_TIMEOUT_JIFFIES, result.max_jiffies);
+        }
 	}
     
     EndPerf(WRITE_NVWRITE_PERF);
-    
-    /* Read the NVWrite performance in kernel mode */
-    {
-        TPM_DRIVER_NVWRITE_TIMER result;
-        
-        ReadDriverNVWriteResult(&result);
-        SetPerf(WRITE_KERNEL_PERF, result.timer_result);
-        SetPerf(WRITE_KERNEL_TIMEOUT_JIFFIES, result.max_jiffies);
-    }
     
     FinalizeTPM(&hContext, NULL, NULL, NULL);
     return 0;

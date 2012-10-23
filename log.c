@@ -110,7 +110,8 @@ int GetCurrentRunType()
 // Used to start a run.
 void StartNewRun(int run_type)
 {
-    
+    // Init
+    memset(&g_cur_run, 0, sizeof(TPMDOS_CURRENT_RUN));
     g_cur_run.run_type = run_type;
     
     // Generate time stamp
