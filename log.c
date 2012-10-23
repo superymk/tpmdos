@@ -30,6 +30,7 @@ static void WriteMetaFile()
             (long long unsigned int)g_meta.Write_40bytes,
             (long long unsigned int)g_meta.Read_40bytes,
             (long long unsigned int)g_meta.Define_NVRAM,
+    
             (long long unsigned int)g_meta.Write_705bytes,
             (long long unsigned int)g_meta.Read_705bytes,
             (long long unsigned int)g_meta.Write_1704bytes,
@@ -198,6 +199,7 @@ void ReadMetaFile()
             (long long unsigned int*)&g_meta.Write_40bytes,
             (long long unsigned int*)&g_meta.Read_40bytes,
             (long long unsigned int*)&g_meta.Define_NVRAM,
+    
             (long long unsigned int*)&g_meta.Write_705bytes,
             (long long unsigned int*)&g_meta.Read_705bytes,
             (long long unsigned int*)&g_meta.Write_1704bytes,

@@ -59,9 +59,10 @@ typedef struct
     uint64_t L_test;// Test purpose only
     uint64_t Write_40bytes;
     uint64_t Read_40bytes;
+    uint64_t Define_NVRAM;
+    
     uint64_t Write_705bytes;
     uint64_t Read_705bytes;
-    uint64_t Define_NVRAM;
     uint64_t Write_1704bytes;
     uint64_t Read_1704bytes;
     uint64_t Write_576bytes;
