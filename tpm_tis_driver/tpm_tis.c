@@ -451,7 +451,7 @@ static int memlocate(u8* mem, unsigned int target, size_t len)
 	size_t i = 0;
 	for(i = 0; i < len; i++)
  	{
- 		unsigned int value = *(unsigned int*)(mem+i);
+ 		unsigned int value = *(unsigned int*)((u8*)(mem+i));
  		
  		if(value == target)
  			return i;
@@ -487,13 +487,6 @@ static int tpm_tis_send(struct tpm_chip *chip, u8 *buf, size_t len)
 	u64 start_timer = 0, end_timer = 0;
 	int res = memlocate(buf, 0xbabecafe, len);
 	
-	if(res)
-	{
-		buf[res + 0] = buf[res + 4];// Restore data
-		buf[res + 1] = buf[res + 4];
-		buf[res + 2] = buf[res + 4];
-		buf[res + 3] = buf[res + 4];
-	}
 	//printk(KERN_INFO "[TPMDoS Driver] MAGIC_HEADER found:%d, size:%u\n", result, len);
 	
 	QueryPerformanceCounter(&start_timer);

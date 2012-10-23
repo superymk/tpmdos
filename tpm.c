@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define CHUNK_SIZE   1024
+
 static void InitTPM(
     TSS_HCONTEXT* hContext, 
     TSS_HTPM* hTPM,
@@ -258,11 +260,10 @@ int WriteNVRAM(
     
     /* Write to the NVRAM space */
     //ret = Tspi_NV_WriteValue(hNVStore, 0, ulDataLength, data);
-    #define WRITE_CHUNK_SIZE   1024
     bytesToWrite = ulDataLength;
 	while (bytesToWrite > 0) {
-		UINT32 chunk = (bytesToWrite > WRITE_CHUNK_SIZE)
-			       ? WRITE_CHUNK_SIZE
+		UINT32 chunk = (bytesToWrite > CHUNK_SIZE)
+			       ? CHUNK_SIZE
 			       : bytesToWrite;
         
         *(unsigned int*)(data + off) = WRITE_MAGIC_HEADER;
@@ -482,11 +483,11 @@ int ReadNVRAM(
     
     /* No authorization needed to read from this NVRAM the way it was created. */
     /* Read from the NVRAM space */
-    #define READ_CHUNK_SIZE   1024
+    
     bytesToRead = ulDataLength;
 	while (bytesToRead > 0) {
-		UINT32 chunk = (bytesToRead > READ_CHUNK_SIZE)
-			       ? READ_CHUNK_SIZE
+		UINT32 chunk = (bytesToRead > CHUNK_SIZE)
+			       ? CHUNK_SIZE
 			       : bytesToRead;
         
         ret = Tspi_NV_ReadValue(*hNVStore, off, &chunk, &rdata);
@@ -498,6 +499,8 @@ int ReadNVRAM(
             return TPM_NVREAD_ERROR; 
         }
         
+        if(*(unsigned int*)(rdata) == WRITE_MAGIC_HEADER)
+            *(unsigned int*)(rdata) = ((unsigned int*)(rdata))[1];
         memcpy(&data[off], rdata, chunk);
         
 		bytesToRead -= chunk;
