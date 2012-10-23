@@ -101,17 +101,17 @@ static int InitWriteTPM(
     static TSS_HPOLICY     hNewPolicy, hDataPolicy;
     static TSS_HNVSTORE    hNVStore;
     TSS_RESULT      ret;
-    static int isInit = 0;
+    //static int isInit = 0;
     
-    if(Finalize && isInit)
+    if(Finalize)
     {
         FinalizeTPM(&hContext, &hTPM, NULL, NULL);
         
-        isInit = 0;
+        //isInit = 0;
         return TSS_SUCCESS;
     }
     
-    if(!isInit)
+    //if(!isInit)
     {
         InitTPM(&hContext, NULL, NULL, NULL);
         
@@ -219,7 +219,7 @@ static int InitWriteTPM(
 
         EndPerf(WRITE_POLICY_PERF);
     
-        isInit = 1;
+        //isInit = 1;
     }
     
     *phNVStore = &hNVStore;
@@ -301,7 +301,7 @@ int WriteNVRAM(
 }
 
 static int InitReadTPM(
-    TSS_HNVSTORE* phNVStore, 
+    TSS_HNVSTORE** phNVStore, 
     UINT32 space_size, 
     UINT32 nv_index, 
     UINT32 Finalize
@@ -314,17 +314,17 @@ static int InitReadTPM(
     //~ static TSS_HPOLICY hSRKPolicy;
     static TSS_HPOLICY     hTPMPolicy, hDataPolicy;
     static TSS_HNVSTORE    hNVStore;
-    static int isInit = 0;
+    //static int isInit = 0;
     TSS_RESULT      ret;
     
-    if(Finalize && isInit)
+    if(Finalize)
     {
         FinalizeTPM(&hContext, &hTPM, NULL, NULL);
         
-        isInit = 0;
+        //isInit = 0;
         return TSS_SUCCESS;
     }
-    if(!isInit)
+    //if(!isInit)
     {
         InitTPM(&hContext, NULL, NULL, NULL);
         
@@ -441,10 +441,10 @@ static int InitReadTPM(
         }
 
     
-        isInit = 1;
+        //isInit = 1;
     }
     
-    phNVStore = &hNVStore;
+    *phNVStore = &hNVStore;
 
     return TSS_SUCCESS;
 }
@@ -468,7 +468,7 @@ int ReadNVRAM(
     BYTE*           rdata = 0;
     unsigned int    bytesToRead = 0, off = 0;
     
-    ret = InitReadTPM(hNVStore, space_size, nv_index, FALSE);
+    ret = InitReadTPM(&hNVStore, space_size, nv_index, FALSE);
     if (ret!=TSS_SUCCESS) 
     { 
         LOG_TPM("InitWriteTPM: %x\n",ret); 
