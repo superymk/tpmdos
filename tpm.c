@@ -264,18 +264,18 @@ int ReadNVRAM(
         return TPM_ATTIBUTE_ERROR; 
     }
     
+    /*Next its arbitrary index will be 0x00011101 (00-FF are taken, along with 00011600). */
+    ret = Tspi_SetAttribUint32(hNVStore, TSS_TSPATTRIB_NV_INDEX,0, nv_index);
+    if (ret!=TSS_SUCCESS) 
+    { 
+        LOG_TPM("Tspi_SetAttribUint32 index %x\n",ret); 
+            
+        EndPerf(READ_ATTRIB_PERF);
+        return TPM_ATTIBUTE_ERROR; 
+    }
+        
     if(!needAuth)
     {
-        /*Next its arbitrary index will be 0x00011101 (00-FF are taken, along with 00011600). */
-        ret = Tspi_SetAttribUint32(hNVStore, TSS_TSPATTRIB_NV_INDEX,0, nv_index);
-        if (ret!=TSS_SUCCESS) 
-        { 
-            LOG_TPM("Tspi_SetAttribUint32 index %x\n",ret); 
-            
-            EndPerf(READ_ATTRIB_PERF);
-            return TPM_ATTIBUTE_ERROR; 
-        }
-        
         /* set its Attributes. First it is only writeable by the owner */
         ret = Tspi_SetAttribUint32(hNVStore,TSS_TSPATTRIB_NV_PERMISSIONS, 0, TPM_NV_PER_OWNERWRITE);
         if (ret!=TSS_SUCCESS) 
