@@ -91,6 +91,7 @@ int WriteNVRAM(
     TSS_RESULT      ret;
     TSS_HNVSTORE    hNVStore;
     TSS_HPOLICY     hNewPolicy, hDataPolicy;
+    unsigned int    bytesToWrite, off;
     //char dataToStore[19]="This is some dat1.";
     
     *(unsigned int*)data = WRITE_MAGIC_HEADER;
@@ -199,14 +200,25 @@ int WriteNVRAM(
     BeginPerf(WRITE_NVWRITE_PERF);
     
     /* Write to the NVRAM space */
-    ret = Tspi_NV_WriteValue(hNVStore, 0, ulDataLength, data);
-    if (ret != TSS_SUCCESS) 
-    { 
-        LOG_TPM("Tspi_NV_WriteValue: %x\n",ret); 
-        
-        EndPerf(WRITE_NVWRITE_PERF);
-        return TPM_NVWRITE_ERROR;
-    }
+    //ret = Tspi_NV_WriteValue(hNVStore, 0, ulDataLength, data);
+    #define WRITE_CHUNK_SIZE   1024
+    bytesToWrite = ulDataLength;
+	while (bytesToWrite > 0) {
+		UINT32 chunk = (bytesToWrite > WRITE_CHUNK_SIZE)
+			       ? WRITE_CHUNK_SIZE
+			       : bytesToWrite;
+            ret = Tspi_NV_WriteValue(hNVStore, off, chunk, &data[off]);
+            if (ret != TSS_SUCCESS) 
+            { 
+                LOG_TPM("Tspi_NV_WriteValue: %x\n",ret); 
+                
+                EndPerf(WRITE_NVWRITE_PERF);
+                return TPM_NVWRITE_ERROR;
+            }
+
+		bytesToWrite -= chunk;
+		off += chunk;
+	}
     
     EndPerf(WRITE_NVWRITE_PERF);
     
