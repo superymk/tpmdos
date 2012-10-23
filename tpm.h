@@ -27,19 +27,21 @@
 #define TPM_NVDEFINE_ERROR   -4
 #define TPM_POLICY_ERROR    -5
 
-extern void InitTPM(
-    TSS_HCONTEXT* hContext, 
-    TSS_HTPM* hTPM,
-    TSS_HKEY* hSRK,
-    TSS_HPOLICY* hSRKPolicy
-);
+//~ extern void InitTPM(
+    //~ TSS_HCONTEXT* hContext, 
+    //~ TSS_HTPM* hTPM,
+    //~ TSS_HKEY* hSRK,
+    //~ TSS_HPOLICY* hSRKPolicy
+//~ );
 
-extern void FinalizeTPM(
-    TSS_HCONTEXT* hContext, 
-    TSS_HTPM* hTPM,
-    TSS_HKEY* hSRK,
-    TSS_HPOLICY* hSRKPolicy
-);
+//~ extern void FinalizeTPM(
+    //~ TSS_HCONTEXT* hContext, 
+    //~ TSS_HTPM* hTPM,
+    //~ TSS_HKEY* hSRK,
+    //~ TSS_HPOLICY* hSRKPolicy
+//~ );
+
+extern void FinalizeTPMContexts(void);
 
 // return <TPM_ATTIBUTE_ERROR> on tspi attribute related errors.
 // return <TPM_POLICY_ERROR> on tpm policy related errors.
@@ -62,7 +64,7 @@ extern int ReadNVRAM(
     UINT32          space_size, 
     UINT32          nv_index, 
     UINT32          ulDataLength,
-    UINT32          needAuth,
+    //UINT32          needAuth,
     BYTE*           data
 );
 

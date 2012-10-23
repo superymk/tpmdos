@@ -133,7 +133,7 @@ void PerfNVRead40bytes()
     memset(dataToRead, 0, READ40_SPACE_SZ);
     
     // Run
-    ret = ReadNVRAM(READ40_SPACE_SZ, nv_index, READ40_SPACE_SZ, FALSE, (BYTE*)dataToRead);
+    ret = ReadNVRAM(READ40_SPACE_SZ, nv_index, READ40_SPACE_SZ, (BYTE*)dataToRead);
     if (ret == TPM_NVREAD_ERROR)
     {
         PRINT("(%s FAILED) NVRead Fail.\n", __func__ );
@@ -277,7 +277,7 @@ void PerfNVRead705bytes()
     memset(dataToRead, 0, READ705_SPACE_SZ);
     
     // Run
-    ret = ReadNVRAM(READ705_SPACE_SZ, nv_index, READ705_SPACE_SZ, FALSE, (BYTE*)dataToRead);
+    ret = ReadNVRAM(READ705_SPACE_SZ, nv_index, READ705_SPACE_SZ, (BYTE*)dataToRead);
     if (ret == TPM_NVREAD_ERROR)
     {
         PRINT("(%s FAILED) NVRead Fail.\n", __func__ );
@@ -482,7 +482,7 @@ void PerfNVReadAllIFX1212()
         memset(dataToRead, 0, READ705_SPACE_SZ);
         
         // Run
-        ret = ReadNVRAM(READ705_SPACE_SZ, 0x00011101, READ705_SPACE_SZ, FALSE, (BYTE*)dataToRead);
+        ret = ReadNVRAM(READ705_SPACE_SZ, 0x00011101, READ705_SPACE_SZ, (BYTE*)dataToRead);
         if (ret == TPM_NVREAD_ERROR)
         {
             PRINT("(%s FAILED) NVRead Fail.\n", __func__ );
@@ -512,7 +512,7 @@ void PerfNVReadAllIFX1212()
         memset(dataToRead1704, 0, READ705_SPACE_SZ);
         
         // Run
-        ret = ReadNVRAM(READ1704_SPACE_SZ, 0x1000f000, READ1704_SPACE_SZ, TRUE, (BYTE*)dataToRead1704);
+        ret = ReadNVRAM(READ1704_SPACE_SZ, 0x1000f000, READ1704_SPACE_SZ, (BYTE*)dataToRead1704);
         if (ret == TPM_NVREAD_ERROR)
         {
             PRINT("(%s FAILED) NVRead Fail.\n", __func__ );
@@ -542,7 +542,7 @@ void PerfNVReadAllIFX1212()
         memset(dataToRead576, 0, READ576_SPACE_SZ);
         
         // Run
-        ret = ReadNVRAM(READ576_SPACE_SZ, 0x30000001, READ576_SPACE_SZ, FALSE, (BYTE*)dataToRead576);
+        ret = ReadNVRAM(READ576_SPACE_SZ, 0x30000001, READ576_SPACE_SZ, (BYTE*)dataToRead576);
         if (ret == TPM_NVREAD_ERROR)
         {
             PRINT("(%s FAILED) NVRead Fail.\n", __func__ );
