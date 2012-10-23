@@ -218,7 +218,7 @@ void PerfNVWrite705bytes(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM)
     // Mark run type first
     StartNewRun(WRITE_705BYTES);
     
-    PRINT("(%s INFO) NVWrite will write content:%s \n", __func__, dataToStore705);
+    PRINT("(%s INFO) NVWrite will write content:%s \n", __func__, dataToStore705+4);
     ret = WriteNVRAM(hContext, WRITE705_SPACE_SZ, nv_index, nv_attribute, 
         WRITE705_SPACE_SZ, (BYTE*)dataToStore705);
     if ( ret == TPM_NVWRITE_ERROR)
@@ -350,7 +350,7 @@ void PerfNVWriteAllIFX1212(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM)
         if(ret)
         {
             PRINT("(%s FAILED) DefineNVRAM.\n", __func__ );
-            return;
+            FATAL_ERROR();
         }
         
         EndCurrentRun();
@@ -358,7 +358,7 @@ void PerfNVWriteAllIFX1212(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM)
     else if (ret == TPMUTIL_GETCAP_ERROR)
     {
         PRINT("(%s FAILED) TPMUTIL_GETCAP_ERROR.\n", __func__ );
-        return;
+        FATAL_ERROR();
     }
     
     // Run
@@ -372,18 +372,18 @@ void PerfNVWriteAllIFX1212(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM)
         // Mark run type first
         StartNewRun(WRITE_705BYTES);
         
-        PRINT("(%s INFO) NVWrite will write content:%s \n", __func__, dataToStore705);
+        PRINT("(%s INFO) NVWrite will write content:%s \n", __func__, dataToStore705+4);
         ret = WriteNVRAM(hContext, WRITE705_SPACE_SZ, 0x00011101, nv_attribute, 
             WRITE705_SPACE_SZ, (BYTE*)dataToStore705);
         if ( ret == TPM_NVWRITE_ERROR)
         {
             PRINT("(%s FAILED) NVWrite Fail.\n", __func__ );
-            return;
+            FATAL_ERROR();
         }
         else if ( ret == TPM_ATTIBUTE_ERROR)
         {
             PRINT("(%s FAILED) TPM Attribute Fail.\n", __func__ );
-            return;
+            FATAL_ERROR();
         }
         
         EndCurrentRun();
@@ -399,12 +399,12 @@ void PerfNVWriteAllIFX1212(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM)
         if ( ret == TPM_NVWRITE_ERROR)
         {
             PRINT("(%s FAILED) NVWrite Fail.\n", __func__ );
-            return;
+            FATAL_ERROR();
         }
         else if ( ret == TPM_ATTIBUTE_ERROR)
         {
             PRINT("(%s FAILED) TPM Attribute Fail.\n", __func__ );
-            return;
+            FATAL_ERROR();
         }
         
         EndCurrentRun();
@@ -420,12 +420,12 @@ void PerfNVWriteAllIFX1212(TSS_HCONTEXT* hContext, TSS_HTPM* hTPM)
         if ( ret == TPM_NVWRITE_ERROR)
         {
             PRINT("(%s FAILED) NVWrite Fail.\n", __func__ );
-            return;
+            FATAL_ERROR();
         }
         else if ( ret == TPM_ATTIBUTE_ERROR)
         {
             PRINT("(%s FAILED) TPM Attribute Fail.\n", __func__ );
-            return;
+            FATAL_ERROR();
         }
         
         EndCurrentRun();

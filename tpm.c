@@ -90,7 +90,7 @@ int WriteNVRAM(
 {
     TSS_RESULT      ret;
     TSS_HNVSTORE    hNVStore;
-    TSS_HPOLICY     hNewPolicy;
+    TSS_HPOLICY     hNewPolicy, hDataPolicy;
     //char dataToStore[19]="This is some dat1.";
     
     *(unsigned int*)data = WRITE_MAGIC_HEADER;
@@ -166,6 +166,34 @@ int WriteNVRAM(
         EndPerf(WRITE_POLICY_PERF);
         return TPM_POLICY_ERROR; 
     }
+    
+    /* Set Data Policy for the NVRAM object using the Owner Auth */
+    ret = Tspi_Context_CreateObject(*hContext, TSS_OBJECT_TYPE_POLICY, TSS_POLICY_USAGE, &hDataPolicy);
+    if (ret!=TSS_SUCCESS) 
+    { 
+        LOG_TPM("Tspi_Context_CreateObject (DataPolicy): %x\n",ret); 
+        
+        EndPerf(WRITE_POLICY_PERF);
+        return TPM_POLICY_ERROR; 
+    }
+    
+    ret = Tspi_Policy_SetSecret(hDataPolicy, TSS_SECRET_MODE_PLAIN, OWNER_PASSWD_LENGTH, (BYTE*)OWNER_PASSWD);
+    if (ret!=TSS_SUCCESS) 
+    { 
+        LOG_TPM("Tspi_Policy_SetSecret (DataPolicy): %x\n",ret); 
+        
+        EndPerf(WRITE_POLICY_PERF);
+        return TPM_POLICY_ERROR; 
+    }
+    
+    ret = Tspi_Policy_AssignToObject(hDataPolicy,hNVStore);
+    if (ret!=TSS_SUCCESS) 
+    { 
+        LOG_TPM(" Tspi_Policy_AssignToObject (DataPolicy): %x\n",ret); 
+        
+        EndPerf(WRITE_POLICY_PERF);
+        return TPM_POLICY_ERROR; 
+    }
 
     EndPerf(WRITE_POLICY_PERF);
     BeginPerf(WRITE_NVWRITE_PERF);
@@ -207,7 +235,7 @@ int ReadNVRAM(
 )
 {
     TSS_HNVSTORE    hNVStore;
-    TSS_HPOLICY     hNewPolicy;
+    TSS_HPOLICY     hNewPolicy, hDataPolicy;
     TSS_RESULT      ret;
     BYTE*           rdata = 0;
     
@@ -284,6 +312,34 @@ int ReadNVRAM(
             LOG_TPM(" Tspi_Policy_AssignToObject: %x\n",ret); 
             
             EndPerf(READ_POLICY_PERF);
+            return TPM_POLICY_ERROR; 
+        }
+        
+        /* Set Data Policy for the NVRAM object using the Owner Auth */
+        ret = Tspi_Context_CreateObject(*hContext, TSS_OBJECT_TYPE_POLICY, TSS_POLICY_USAGE, &hDataPolicy);
+        if (ret!=TSS_SUCCESS) 
+        { 
+            LOG_TPM("Tspi_Context_CreateObject (DataPolicy): %x\n",ret); 
+            
+            EndPerf(WRITE_POLICY_PERF);
+            return TPM_POLICY_ERROR; 
+        }
+        
+        ret = Tspi_Policy_SetSecret(hDataPolicy, TSS_SECRET_MODE_PLAIN, OWNER_PASSWD_LENGTH, (BYTE*)OWNER_PASSWD);
+        if (ret!=TSS_SUCCESS) 
+        { 
+            LOG_TPM("Tspi_Policy_SetSecret (DataPolicy): %x\n",ret); 
+            
+            EndPerf(WRITE_POLICY_PERF);
+            return TPM_POLICY_ERROR; 
+        }
+        
+        ret = Tspi_Policy_AssignToObject(hDataPolicy,hNVStore);
+        if (ret!=TSS_SUCCESS) 
+        { 
+            LOG_TPM(" Tspi_Policy_AssignToObject (DataPolicy): %x\n",ret); 
+            
+            EndPerf(WRITE_POLICY_PERF);
             return TPM_POLICY_ERROR; 
         }
 
