@@ -143,7 +143,7 @@ void PerfNVRead40bytes()
         PRINT("(%s FAILED) TPM Attribute Fail.\n", __func__ );
         FATAL_ERROR();
     }
-    else if (strncmp((dataToRead), dataToStore, READ40_SPACE_SZ))
+    else if (memcmp((dataToRead), dataToStore, READ40_SPACE_SZ))
     {
         PRINT("(%s FAILED) TPM NVRAM Fails.\n", __func__ );
         FATAL_ERROR();
@@ -292,7 +292,7 @@ void PerfNVRead705bytes()
         PRINT("(%s FAILED) TPM Attribute Fail.\n", __func__ );
         FATAL_ERROR();
     }
-    else if (strncmp((dataToRead), dataToStore705, READ705_SPACE_SZ))
+    else if (memcmp((dataToRead), dataToStore705, READ705_SPACE_SZ))
     {
         PRINT("(%s FAILED) TPM NVRAM Fails.\n", __func__ );
         FATAL_ERROR();
@@ -497,7 +497,7 @@ void PerfNVReadAllIFX1212()
             PRINT("(%s FAILED) TPM Attribute Fail.\n", __func__ );
             FATAL_ERROR();
         }
-        else if (strncmp(dataToRead, dataToStore705, READ705_SPACE_SZ))
+        else if (memcmp(dataToRead, dataToStore705, READ705_SPACE_SZ))
         {
             PRINT("(%s FAILED) TPM NVRAM Fails.\n", __func__ );
             FATAL_ERROR();
@@ -527,7 +527,7 @@ void PerfNVReadAllIFX1212()
             PRINT("(%s FAILED) TPM Attribute Fail.\n", __func__ );
             FATAL_ERROR();
         }
-        else if (strncmp(dataToRead1704, dataToStore1704, READ1704_SPACE_SZ))
+        else if (memcmp(dataToRead1704, dataToStore1704, READ1704_SPACE_SZ))
         {
             PRINT("(%s FAILED) TPM NVRAM Fails.\n", __func__ );
             FATAL_ERROR();
@@ -557,7 +557,7 @@ void PerfNVReadAllIFX1212()
             PRINT("(%s FAILED) TPM Attribute Fail.\n", __func__ );
             FATAL_ERROR();
         }
-        else if (strncmp(dataToRead576, dataToRead576, READ576_SPACE_SZ))
+        else if (memcmp(dataToRead576, dataToRead576, READ576_SPACE_SZ))
         {
             PRINT("(%s FAILED) TPM NVRAM Fails.\n", __func__ );
             FATAL_ERROR();
