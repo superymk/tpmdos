@@ -714,7 +714,7 @@ void FinalizeTPMContexts(void)
 int IsNVIndexDefined(UINT32 nv_index)
 {
     UINT32 i, ulResultLen;
-    TSS_HTPM hTPM;
+    static TSS_HTPM hTPM;
     static TSS_HCONTEXT hContext;
     static int isInit = 0; 
 	BYTE *pResult = NULL;
