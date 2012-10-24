@@ -32,13 +32,13 @@
  *      NVRAM write failure.
  *
  */
- #define WRITE40_SPACE_SZ   40
+#define WRITE40_SPACE_SZ   40
+static char dataToStore[WRITE40_SPACE_SZ + 1];
 void PerfNVWrite40bytes()
 {
     // Setup
     const UINT32 nv_index = 0x00011101;
     const UINT32 nv_attribute = TPM_NV_PER_OWNERWRITE;
-    static char dataToStore[WRITE40_SPACE_SZ + 1];
     UINT32 ret = 0;
     
     // Mark the new test
@@ -66,10 +66,14 @@ void PerfNVWrite40bytes()
     }
     
     // Run
+    // Generate a comprehensive string for next write.
+    FLIP_BYTES((dataToStore), (WRITE40_SPACE_SZ));
+    dataToStore[WRITE40_SPACE_SZ] = '\0';
+    
     // Mark run type first
     StartNewRun(WRITE_40BYTES);
     
-    PRINT("(%s INFO) NVWrite will write content:%s \n", __func__, dataToStore);
+    //PRINT("(%s INFO) NVWrite will write content:%s \n", __func__, dataToStore);
     ret = WriteNVRAM(WRITE40_SPACE_SZ, nv_index, nv_attribute, 
         WRITE40_SPACE_SZ, (BYTE*)dataToStore);
     if ( ret == TPM_NVWRITE_ERROR)
@@ -85,11 +89,6 @@ void PerfNVWrite40bytes()
     
     EndCurrentRun();
     PRINT("(%s SUCCESSFUL) NVWrite Perf Succeed! \n", __func__);
-    
-    // Finalize
-    // Generate a comprehensive string for next write.
-    FLIP_BYTES(dataToStore, WRITE40_SPACE_SZ);
-    dataToStore[WRITE40_SPACE_SZ] = '\0';
 }
 
 /*
@@ -144,8 +143,13 @@ void PerfNVRead40bytes()
         PRINT("(%s FAILED) TPM Attribute Fail.\n", __func__ );
         FATAL_ERROR();
     }
+    else if (strncmp((dataToRead), dataToStore, READ40_SPACE_SZ))
+    {
+        PRINT("(%s FAILED) TPM NVRAM Fails.\n", __func__ );
+        FATAL_ERROR();
+    }
     
-    PRINT("(%s INFO) Read Result: dest_str:%s.\n", __func__, dataToRead);
+    //PRINT("(%s INFO) Read Result: dest_str:%s.\n", __func__, dataToRead);
     
     EndCurrentRun();
     PRINT("(%s SUCCESSFUL) NVRead Perf Succeed! \n", __func__);
@@ -218,7 +222,7 @@ void PerfNVWrite705bytes()
     // Mark run type first
     StartNewRun(WRITE_705BYTES);
     
-    PRINT("(%s INFO) NVWrite will write content:%s \n", __func__, dataToStore705);
+    //PRINT("(%s INFO) NVWrite will write content:%s \n", __func__, dataToStore705);
     ret = WriteNVRAM(WRITE705_SPACE_SZ, nv_index, nv_attribute, 
         WRITE705_SPACE_SZ, (BYTE*)dataToStore705);
     if ( ret == TPM_NVWRITE_ERROR)
@@ -294,7 +298,7 @@ void PerfNVRead705bytes()
         FATAL_ERROR();
     }
     
-    PRINT("(%s INFO) Read Result: dest_str:%s.\n", __func__, dataToRead);
+    //PRINT("(%s INFO) Read Result: dest_str:%s.\n", __func__, dataToRead);
     
     EndCurrentRun();
     PRINT("(%s SUCCESSFUL) NVRead Perf Succeed! \n", __func__);
@@ -374,7 +378,7 @@ void PerfNVWriteAllIFX1212()
         // Mark run type first
         StartNewRun(WRITE_705BYTES);
         
-        PRINT("(%s INFO) NVWrite will write content:%s \n", __func__, dataToStore705+4);
+        //PRINT("(%s INFO) NVWrite will write content:%s \n", __func__, dataToStore705+4);
         ret = WriteNVRAM(WRITE705_SPACE_SZ, 0x00011101, nv_attribute, 
             WRITE705_SPACE_SZ, (BYTE*)dataToStore705);
         if ( ret == TPM_NVWRITE_ERROR)
