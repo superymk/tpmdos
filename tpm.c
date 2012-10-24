@@ -220,11 +220,12 @@ static int InitWriteTPM(
                 return TPM_POLICY_ERROR; 
             }
 
-            EndPerf(WRITE_POLICY_PERF);
+            
             
             isInit = 1;
         }
-    
+        
+    EndPerf(WRITE_POLICY_PERF);
     *phNVStore = &hNVStore;
     
     return TSS_SUCCESS;
@@ -391,10 +392,11 @@ static int InitReadTPM(
         
         
     EndPerf(READ_ATTRIB_PERF);
-        
+    BeginPerf(READ_POLICY_PERF);
+            
         if(!isInit)
         {
-            BeginPerf(READ_POLICY_PERF);
+            
             
             /* Set Policy for the NVRAM object using the Owner Auth */
             ret = Tspi_GetPolicyObject(hTPM, TSS_POLICY_USAGE, &hTPMPolicy);
@@ -443,11 +445,13 @@ static int InitReadTPM(
                 return TPM_POLICY_ERROR; 
             }
 
-            EndPerf(READ_POLICY_PERF);
+            
             
             isInit = 1;
         }
-    
+        
+    EndPerf(READ_POLICY_PERF);
+        
     *phNVStore = &hNVStore;
 
     return TSS_SUCCESS;
