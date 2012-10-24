@@ -92,12 +92,13 @@ void FormatMsg(int log_type, char* msg)
                 uint64_t    total_localrun = GetMetaValue(GetCurrentRunType());
                 
                 TranslateRunType(GetCurrentRunType(), type_str);
-                sprintf(msg, "Result: run_type: %s, total_test: %llu, total_localrun: %llu, , READ_NVREAD_PERF: %llu, READ_ATTRIB_PERF: %llu\n",
+                sprintf(msg, "Result: run_type: %s, total_test: %llu, total_localrun: %llu, , READ_NVREAD_PERF: %llu, READ_ATTRIB_PERF: %llu, READ_POLICY_PERF: %llu\n",
                     type_str,
                     (long long unsigned int)test_counter, 
                     (long long unsigned int)total_localrun,
                     (long long unsigned int)GetPerf(READ_NVREAD_PERF),
-                    (long long unsigned int)GetPerf(READ_ATTRIB_PERF)
+                    (long long unsigned int)GetPerf(READ_ATTRIB_PERF),
+                    (long long unsigned int)GetPerf(READ_POLICY_PERF)
                 );
             }
             else if(log_type == LOG_GNUPLOT)
@@ -107,12 +108,13 @@ void FormatMsg(int log_type, char* msg)
                 uint64_t    total_localrun = GetMetaValue(GetCurrentRunType());
                 // For the L_TEST, the output data format:
                 // #   (Date/Time)         (Total Run)    (Run for this type)      (READ_NVREAD_PERF (us))
-                sprintf(msg, "\t%s\t%llu\t%llu\t%llu\t%llu\n", 
+                sprintf(msg, "\t%s\t%llu\t%llu\t%llu\t%llu\t%llu\n", 
                         timestamp, 
                         (long long unsigned int)test_counter, 
                         (long long unsigned int)total_localrun,
                         (long long unsigned int)GetPerf(READ_NVREAD_PERF),
-                        (long long unsigned int)GetPerf(READ_ATTRIB_PERF)
+                        (long long unsigned int)GetPerf(READ_ATTRIB_PERF),
+                        (long long unsigned int)GetPerf(READ_POLICY_PERF)
                 );
             }
             break;
